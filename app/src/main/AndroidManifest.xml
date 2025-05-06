@@ -27,19 +27,14 @@
             </intent-filter>
         </activity>
 
-        <!-- Add this Maps activity declaration -->
         <activity
             android:name=".Maps"
-            android:exported="false" />
+            android:exported="true" />
 
         <activity
             android:name=".ModeratorActivity"
             android:exported="false"
             android:enableOnBackInvokedCallback="true"
             tools:targetApi="33" />
-
-
-
-
     </application>
 </manifest>
