@@ -1,137 +1,151 @@
 package com.example.myapplication;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
-import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.OvershootInterpolator;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 import android.widget.ImageView;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
+
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.maps.MapView;
-import com.mapbox.mapboxsdk.maps.Style;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
+import com.mapbox.mapboxsdk.maps.Style;
 
 public class Maps extends AppCompatActivity {
     private MapView mapView;
     private CardView searchCard;
     private ImageView menuIcon;
+    private EditText searchInput;
     private boolean isSearchExpanded = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Get the API Key from BuildConfig
-        String key = BuildConfig.MAPTILER_API_KEY;
-
-        // Map style
-        String mapId = "streets-v2";
-        String styleUrl = "https://api.maptiler.com/maps/" + mapId + "/style.json?key=" + key;
-
         // Initialize Mapbox
         Mapbox.getInstance(this);
 
         // Inflate layout
-        LayoutInflater inflater = LayoutInflater.from(this);
-        @SuppressLint("InflateParams") View rootView = inflater.inflate(R.layout.activity_main, null);
+        @SuppressLint("InflateParams")
+        View rootView = LayoutInflater.from(this).inflate(R.layout.activity_main, null);
         setContentView(rootView);
 
-        // Initialize MapView
-        mapView = rootView.findViewById(R.id.mapView);
+        // Map style setup
+        String key = BuildConfig.MAPTILER_API_KEY;
+        String mapId = "streets-v2";
+        String styleUrl = "https://api.maptiler.com/maps/" + mapId + "/style.json?key=" + key;
+
+        // Initialize views
+        mapView = findViewById(R.id.mapView);
+        searchCard = findViewById(R.id.searchCard);
+        menuIcon = findViewById(R.id.menuIcon);
+        searchInput = findViewById(R.id.searchInput);
+
         mapView.onCreate(savedInstanceState);
-        mapView.getMapAsync(new OnMapReadyCallback() {
-            @Override
-            public void onMapReady(@NonNull MapboxMap mapboxMap) {
-                mapboxMap.setStyle(new Style.Builder().fromUri(styleUrl));
-                mapboxMap.setCameraPosition(new CameraPosition.Builder()
-                        .target(new LatLng(16.3835, 120.5924))
-                        .zoom(15.0)
-                        .build());
-            }
+        mapView.getMapAsync(mapboxMap -> {
+            mapboxMap.setStyle(new Style.Builder().fromUri(styleUrl));
+            mapboxMap.setCameraPosition(new CameraPosition.Builder()
+                    .target(new LatLng(16.3835, 120.5924))
+                    .zoom(15.0)
+                    .build());
         });
 
-        // Initialize search bar components
-        searchCard = rootView.findViewById(R.id.searchCard);
-        menuIcon = rootView.findViewById(R.id.menuIcon);
-
-        // Set click listener for menu icon to toggle search bar
-        menuIcon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                toggleSearchBar();
-
-            }
-
-        });
+        // Set click listener
+        menuIcon.setOnClickListener(v -> toggleSearchBar());
     }
 
     private void toggleSearchBar() {
-        final View searchContent = searchCard.findViewById(R.id.searchContent);
+        searchCard.post(() -> {
+            View searchContent = searchCard.findViewById(R.id.searchContent);
+            EditText input = searchCard.findViewById(R.id.searchInput);
+            ImageView searchIcon = searchCard.findViewById(R.id.searchIcon);
 
-        int startWidth = searchCard.getWidth();
-        int targetWidth;
+            if (isSearchExpanded) {
+                animateCollapse(input, searchIcon);
+            } else {
+                animateExpand(input, searchIcon);
+            }
 
-        if (isSearchExpanded) {
-            // Collapse state
-            targetWidth = menuIcon.getWidth() + (int) (searchCard.getCardElevation() * 2) + 48; // buffer for padding
+            isSearchExpanded = !isSearchExpanded;
+        });
+    }
 
-            // Animate hiding content
-            ObjectAnimator fadeOut = ObjectAnimator.ofFloat(searchContent, "alpha", 1f, 0f);
-            ObjectAnimator scaleX = ObjectAnimator.ofFloat(searchContent, "scaleX", 1f, 0f);
+    private void animateCollapse(EditText input, ImageView icon) {
+        ObjectAnimator fadeOut = ObjectAnimator.ofFloat(input, "alpha", 1f, 0f);
+        ObjectAnimator shrinkX = ObjectAnimator.ofFloat(input, "scaleX", 1f, 0.8f);
+        ObjectAnimator slideLeft = ObjectAnimator.ofFloat(input, "translationX", 0f, -50f);
+        ObjectAnimator iconFadeOut = ObjectAnimator.ofFloat(icon, "alpha", 1f, 0f);
 
-            // Animate width
-            ValueAnimator widthAnimator = ValueAnimator.ofInt(startWidth, targetWidth);
-            widthAnimator.addUpdateListener(animation -> {
-                int val = (int) animation.getAnimatedValue();
-                searchCard.getLayoutParams().width = val;
-                searchCard.requestLayout();
-            });
+        AnimatorSet collapseSet = new AnimatorSet();
+        collapseSet.playTogether(fadeOut, shrinkX, slideLeft, iconFadeOut);
+        collapseSet.setDuration(300);
+        collapseSet.setInterpolator(new AccelerateDecelerateInterpolator());
 
-            AnimatorSet set = new AnimatorSet();
-            set.playTogether(fadeOut, scaleX, widthAnimator);
-            set.setDuration(300);
-            set.setInterpolator(new AccelerateDecelerateInterpolator());
-            set.start();
-        } else {
-            // Expand state
-            searchCard.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
-            targetWidth = getResources().getDisplayMetrics().widthPixels - (2 * 16); // 16dp margin both sides
+        collapseSet.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                input.setVisibility(View.GONE);
+                icon.setVisibility(View.GONE);
+                input.setTranslationX(0f); // reset position
+                hideKeyboard();
+            }
+        });
 
-            // Animate showing content
-            ObjectAnimator fadeIn = ObjectAnimator.ofFloat(searchContent, "alpha", 0f, 1f);
-            ObjectAnimator scaleX = ObjectAnimator.ofFloat(searchContent, "scaleX", 0f, 1f);
+        collapseSet.start();
+    }
 
-            // Animate width
-            ValueAnimator widthAnimator = ValueAnimator.ofInt(startWidth, targetWidth);
-            widthAnimator.addUpdateListener(animation -> {
-                int val = (int) animation.getAnimatedValue();
-                searchCard.getLayoutParams().width = val;
-                searchCard.requestLayout();
-            });
+    private void animateExpand(EditText input, ImageView icon) {
+        input.setVisibility(View.VISIBLE);
+        icon.setVisibility(View.VISIBLE);
 
-            AnimatorSet set = new AnimatorSet();
-            set.playTogether(fadeIn, scaleX, widthAnimator);
-            set.setDuration(300);
-            set.setInterpolator(new OvershootInterpolator());
-            set.start();
-        }
+        input.setScaleX(0f);
+        input.setAlpha(0f);
+        icon.setAlpha(0f);
 
-        isSearchExpanded = !isSearchExpanded;
+        ObjectAnimator fadeIn = ObjectAnimator.ofFloat(input, "alpha", 0f, 1f);
+        ObjectAnimator growX = ObjectAnimator.ofFloat(input, "scaleX", 0f, 1f);
+        ObjectAnimator iconFadeIn = ObjectAnimator.ofFloat(icon, "alpha", 0f, 1f);
+
+        AnimatorSet expandSet = new AnimatorSet();
+        expandSet.playTogether(fadeIn, growX, iconFadeIn);
+        expandSet.setDuration(250);
+        expandSet.setInterpolator(new OvershootInterpolator());
+
+        expandSet.start();
+        showKeyboard();
     }
 
 
+    private void hideKeyboard() {
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (imm != null) {
+            imm.hideSoftInputFromWindow(searchInput.getWindowToken(), 0);
+        }
+    }
 
-    // ... (keep all the existing MapView lifecycle methods)
+    private void showKeyboard() {
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (imm != null) {
+            imm.showSoftInput(searchInput, InputMethodManager.SHOW_IMPLICIT);
+        }
+    }
+
     @Override
     protected void onStart() {
         super.onStart();
