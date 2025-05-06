@@ -35,5 +35,9 @@
         <!-- Other Activities -->
         <activity android:name=".SignUpActivity" android:exported="true" />
         <activity android:name=".ForgotPasswordActivity" android:exported="true" />
+
+        <!-- ModeratorActivity -->
+        <activity android:name=".ModeratorActivity" android:exported="true" />
+
     </application>
 </manifest>

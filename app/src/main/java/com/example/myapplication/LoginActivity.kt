@@ -2,8 +2,8 @@ package com.example.myapplication
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.View
-import android.widget.ProgressBar
 import android.util.Patterns
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -66,54 +66,85 @@ class LoginActivity : AppCompatActivity() {
         if (validateLoginForm(email, password)) {
             showLoading(true)
 
-            // First check if email exists in Firestore
-            firestore.collection("users")
-                .whereEqualTo("email", email)
-                .limit(1)
-                .get()
-                .addOnSuccessListener { documents ->
-                    if (documents.isEmpty) {
+            auth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener { authTask ->
+                    if (authTask.isSuccessful) {
+                        checkAccountType(email)
+                    } else {
                         showLoading(false)
                         Toast.makeText(
                             this,
-                            "No account found with this email",
+                            "Authentication failed: ${authTask.exception?.message}",
                             Toast.LENGTH_LONG
                         ).show()
-                    } else {
-                        // If email exists in Firestore, try to authenticate
-                        auth.signInWithEmailAndPassword(email, password)
-                            .addOnCompleteListener { task ->
-                                if (task.isSuccessful) {
-                                    val userDoc = documents.documents[0]
-                                    val accountType = userDoc.getString("accountType") ?: "user"
-
-                                    val intent = Intent(this, Maps::class.java).apply {
-                                        putExtra("accountType", accountType)
-                                        putExtra("email", email)
-                                    }
-                                    startActivity(intent)
-                                    finish()
-                                } else {
-                                    showLoading(false)
-                                    Toast.makeText(
-                                        this,
-                                        "Invalid password",
-                                        Toast.LENGTH_LONG
-                                    ).show()
-                                }
-                            }
                     }
-                }
-                .addOnFailureListener { exception ->
-                    showLoading(false)
-                    Toast.makeText(
-                        this,
-                        "Error checking user data: ${exception.message}",
-                        Toast.LENGTH_LONG
-                    ).show()
                 }
         }
     }
+    private fun handleRegularUserLogin(email: String, password: String) {
+        auth.signInWithEmailAndPassword(email, password)
+            .addOnCompleteListener { authTask ->
+                if (authTask.isSuccessful) {
+                    checkAccountType(email)
+                } else {
+                    showLoading(false)
+                    Toast.makeText(
+                        this,
+                        "Authentication failed: ${authTask.exception?.message}",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+    }
+
+    private fun checkAccountType(email: String) {
+        firestore.collection("users")
+            .whereEqualTo("email", email)
+            .limit(1)
+            .get()
+            .addOnSuccessListener { documents ->
+                showLoading(false)
+                if (documents.isEmpty) {
+                    Toast.makeText(
+                        this,
+                        "No user data found",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    auth.signOut()
+                } else {
+                    val userDoc = documents.documents[0]
+                    val accountType = userDoc.getString("accountType") ?: "user"
+
+                    if (accountType == "moderator") {
+                        // Redirect to ModeratorActivity
+                        val modIntent = Intent(this, ModeratorActivity::class.java).apply {
+                            putExtra("accountType", accountType)
+                            putExtra("email", email)
+                        }
+                        startActivity(modIntent)
+                        finish()
+                    } else {
+                        // Regular user goes to Maps
+                        val intent = Intent(this, Maps::class.java).apply {
+                            putExtra("accountType", accountType)
+                            putExtra("email", email)
+                        }
+                        startActivity(intent)
+                        finish()
+                    }
+                }
+            }
+            .addOnFailureListener { exception ->
+                showLoading(false)
+                Toast.makeText(
+                    this,
+                    "Error checking account type: ${exception.message}",
+                    Toast.LENGTH_LONG
+                ).show()
+                auth.signOut()
+            }
+    }
+
 
     private fun showLoading(show: Boolean) {
         binding.progressBar.visibility = if (show) View.VISIBLE else View.GONE
@@ -130,13 +161,5 @@ class LoginActivity : AppCompatActivity() {
 
     private fun handleSignUp() {
         startActivity(Intent(this, SignUpActivity::class.java))
-    }
-
-    private fun handleRememberMe(isChecked: Boolean) {
-        val sharedPref = getSharedPreferences("login_prefs", MODE_PRIVATE)
-        with(sharedPref.edit()) {
-            putBoolean("remember_me", isChecked)
-            apply()
-        }
     }
 }
