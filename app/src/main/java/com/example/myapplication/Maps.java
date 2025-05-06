@@ -19,6 +19,9 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 
+import com.google.firebase.FirebaseApp; // Import FirebaseApp
+import com.google.firebase.auth.FirebaseAuth; // Import FirebaseAuth
+import com.google.firebase.auth.FirebaseUser ; // Import FirebaseUser
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.geometry.LatLng;
@@ -33,12 +36,15 @@ public class Maps extends AppCompatActivity {
     private ImageView menuIcon;
     private EditText searchInput;
     private boolean isSearchExpanded = true;
+    private FirebaseAuth mAuth; // Declare FirebaseAuth instance
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Initialize Mapbox
+        FirebaseApp.initializeApp(this); // Initialize Firebase
+        mAuth = FirebaseAuth.getInstance(); // Initialize FirebaseAuth
+
         Mapbox.getInstance(this);
 
         // Inflate layout
@@ -131,7 +137,6 @@ public class Maps extends AppCompatActivity {
         showKeyboard();
     }
 
-
     private void hideKeyboard() {
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         if (imm != null) {
@@ -144,6 +149,20 @@ public class Maps extends AppCompatActivity {
         if (imm != null) {
             imm.showSoftInput(searchInput, InputMethodManager.SHOW_IMPLICIT);
         }
+    }
+
+    // Example method to sign in a user
+    private void signIn(String email, String password) {
+        mAuth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        // Sign in success
+                        FirebaseUser  user = mAuth.getCurrentUser ();
+                        // Update UI with user information
+                    } else {
+                        // If sign in fails, display a message to the user.
+                    }
+                });
     }
 
     @Override

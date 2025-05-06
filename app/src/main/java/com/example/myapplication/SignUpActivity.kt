@@ -6,15 +6,26 @@ import android.util.Patterns
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.myapplication.databinding.ActivitySignupBinding
+import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 class SignUpActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySignupBinding
+    private lateinit var mAuth: FirebaseAuth
+    private lateinit var db: FirebaseFirestore
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySignupBinding.inflate(layoutInflater)
         setContentView(binding.root)
         supportActionBar?.hide()
+
+        // Initialize Firebase
+        FirebaseApp.initializeApp(this)
+        mAuth = FirebaseAuth.getInstance()
+        db = FirebaseFirestore.getInstance()
+
         setupClickListeners()
     }
 
@@ -81,15 +92,43 @@ class SignUpActivity : AppCompatActivity() {
     }
 
     private fun createSellerAccount() {
+        val email = binding.emailEditText.text.toString()
+        val password = binding.passwordEditText.text.toString()
+
+        // Create user account with Firebase Authentication
+        mAuth.createUserWithEmailAndPassword(email, password)
+            .addOnCompleteListener(this) { task ->
+                if (task.isSuccessful) {
+                    // User account created successfully
+                    val userId = mAuth.currentUser?.uid
+                    saveUserToFirestore(userId)
+                } else {
+                    // If account creation fails, display a message to the user.
+                    Toast.makeText(this, "Account creation failed: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+    }
+
+    private fun saveUserToFirestore(userId: String?) {
         val userData = mapOf(
             "firstName" to binding.firstNameEditText.text.toString(),
             "lastName" to binding.lastNameEditText.text.toString(),
             "email" to binding.emailEditText.text.toString(),
-            "phone" to binding.phoneEditText.text.toString()
+            "phone" to binding.phoneEditText.text.toString(),
+            "accountType" to "user" // Set account type to "user"
         )
 
-        Toast.makeText(this, "Account created successfully!", Toast.LENGTH_SHORT).show()
-        startActivity(Intent(this, Maps::class.java))
-        finish()
+        // Save user data to Firestore
+        userId?.let {
+            db.collection("users").document(it).set(userData)
+                .addOnSuccessListener {
+                    Toast.makeText(this, "Account created successfully!", Toast.LENGTH_SHORT).show()
+                    startActivity(Intent(this, Maps::class.java))
+                    finish()
+                }
+                .addOnFailureListener { e ->
+                    Toast.makeText(this, "Error saving user: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+        }
     }
 }

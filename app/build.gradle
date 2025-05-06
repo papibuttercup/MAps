@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    id 'com.google.gms.google-services' // Add this line
 }
 
 android {
@@ -38,6 +39,9 @@ android {
 }
 
 dependencies {
+    implementation platform('com.google.firebase:firebase-bom:33.13.0') // Use the latest BOM version
+    implementation 'com.google.firebase:firebase-auth' // For Firebase Authentication
+    implementation 'com.google.firebase:firebase-firestore' // For Firestore
     implementation 'org.maplibre.gl:android-sdk:10.2.0'
     implementation libs.androidx.core.ktx
     implementation libs.androidx.appcompat
