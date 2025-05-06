@@ -1,5 +1,6 @@
 package com.example.myapplication;
 
+import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
@@ -7,24 +8,27 @@ import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.location.Address;
-import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.OvershootInterpolator;
-import android.widget.EditText;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
@@ -33,9 +37,12 @@ import androidx.core.content.ContextCompat;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 
 import org.maplibre.android.MapLibre;
+import org.maplibre.android.annotations.Marker;
 import org.maplibre.android.annotations.MarkerOptions;
 import org.maplibre.android.camera.CameraPosition;
 import org.maplibre.android.camera.CameraUpdateFactory;
@@ -51,19 +58,28 @@ import org.maplibre.android.maps.Style;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class Maps extends AppCompatActivity implements OnMapReadyCallback {
     private static final int PERMISSIONS_REQUEST_LOCATION = 99;
     private static final String MARKERS_PREF = "saved_markers";
     private static final String MARKERS_KEY = "markers_list";
-
+    private AutocompleteAdapter autocompleteAdapter;
+    private AutoCompleteTextView searchInput;
+    private OkHttpClient httpClient;
+    private GeocodingService geocodingService;
     private MapView mapView;
     private MapLibreMap maplibreMap;
     private CardView searchCard;
-    private ImageView menuIcon;
-    private EditText searchInput;
     private boolean isSearchExpanded = true;
 
     private LocationComponent locationComponent;
@@ -82,7 +98,7 @@ public class Maps extends AppCompatActivity implements OnMapReadyCallback {
 
         mapView = findViewById(R.id.mapView);
         searchCard = findViewById(R.id.searchCard);
-        menuIcon = findViewById(R.id.menuIcon);
+        ImageView menuIcon = findViewById(R.id.menuIcon);
         searchInput = findViewById(R.id.searchInput);
         gpsFab = findViewById(R.id.gpsFab);
 
@@ -91,6 +107,23 @@ public class Maps extends AppCompatActivity implements OnMapReadyCallback {
 
         gpsFab.setOnClickListener(v -> toggleGpsTracking());
         menuIcon.setOnClickListener(v -> toggleSearchBar());
+
+        httpClient = new OkHttpClient.Builder()
+                .connectTimeout(10, TimeUnit.SECONDS)
+                .readTimeout(10, TimeUnit.SECONDS)
+                .build();
+
+        GeocodingService geocodingService = new MapTilerGeocodingService(this);
+        autocompleteAdapter = new AutocompleteAdapter(this, httpClient);
+        searchInput.setAdapter(autocompleteAdapter);
+        searchInput.setThreshold(1);
+
+// Add this item click listener
+        searchInput.setOnItemClickListener((parent, view, position, id) -> {
+            String selectedItem = (String) parent.getItemAtPosition(position);
+            searchInput.setText(selectedItem);
+            performSearch();
+        });
 
         // Set up search input listener
         searchInput.setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -115,6 +148,86 @@ public class Maps extends AppCompatActivity implements OnMapReadyCallback {
             hideKeyboard();
         } else {
             showToast("Please enter a location");
+        }
+    }
+
+    // Add this inner class for the autocomplete adapter
+    private class AutocompleteAdapter extends ArrayAdapter<String> implements Filterable {
+        private List<String> suggestions;
+        private final OkHttpClient httpClient;
+
+        public AutocompleteAdapter(Context context, OkHttpClient httpClient) {
+            super(context, android.R.layout.simple_dropdown_item_1line);
+            this.suggestions = new ArrayList<>();
+            this.httpClient = httpClient;
+        }
+
+        @Override
+        public int getCount() {
+            return suggestions.size();
+        }
+
+        @Nullable
+        @Override
+        public String getItem(int position) {
+            return position < suggestions.size() ? suggestions.get(position) : null;
+        }
+
+        @NonNull
+        @Override
+        public Filter getFilter() {
+            return new Filter() {
+                @Override
+                protected FilterResults performFiltering(CharSequence constraint) {
+                    FilterResults results = new FilterResults();
+                    if (constraint != null) {
+                        List<String> newSuggestions = fetchSuggestions(constraint.toString());
+                        results.values = newSuggestions;
+                        results.count = newSuggestions.size();
+                    }
+                    return results;
+                }
+
+                @Override
+                @SuppressWarnings("unchecked")
+                protected void publishResults(CharSequence constraint, FilterResults results) {
+                    if (results != null && results.count > 0) {
+                        suggestions.clear();
+                        suggestions.addAll((List<String>) results.values);
+                        notifyDataSetChanged();
+                    } else {
+                        notifyDataSetInvalidated();
+                    }
+                }
+            };
+        }
+
+        private List<String> fetchSuggestions(String query) {
+            List<String> newSuggestions = new ArrayList<>();
+            String apiKey = BuildConfig.MAPTILER_API_KEY;
+            String url = "https://api.maptiler.com/geocoding/" + query + ".json?key=" + apiKey + "&limit=5&autocomplete=true";
+
+            Request request = new Request.Builder().url(url).build();
+
+            try {
+                Response response = httpClient.newCall(request).execute();
+                if (response.isSuccessful() && response.body() != null) {
+                    String responseBody = response.body().string();
+                    JsonObject jsonObject = new Gson().fromJson(responseBody, JsonObject.class);
+                    JsonArray features = jsonObject.getAsJsonArray("features");
+
+                    if (features != null) {
+                        for (int i = 0; i < features.size(); i++) {
+                            JsonObject feature = features.get(i).getAsJsonObject();
+                            String placeName = feature.get("place_name").getAsString();
+                            newSuggestions.add(placeName);
+                        }
+                    }
+                }
+            } catch (IOException e) {
+                Log.e("Autocomplete", "Error fetching suggestions", e);
+            }
+            return newSuggestions;
         }
     }
 
@@ -155,7 +268,7 @@ public class Maps extends AppCompatActivity implements OnMapReadyCallback {
 
     private void saveMarkers() {
         List<MarkerData> markers = new ArrayList<>();
-        for (org.maplibre.android.annotations.Marker marker : maplibreMap.getMarkers()) {
+        for (Marker marker : maplibreMap.getMarkers()) {
             markers.add(new MarkerData(
                     marker.getPosition().getLatitude(),
                     marker.getPosition().getLongitude(),
@@ -189,10 +302,10 @@ public class Maps extends AppCompatActivity implements OnMapReadyCallback {
     }
 
     private boolean checkLocationPermission() {
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
-                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     PERMISSIONS_REQUEST_LOCATION);
             return false;
         }
@@ -270,7 +383,7 @@ public class Maps extends AppCompatActivity implements OnMapReadyCallback {
         saveMarkers(); // Save after adding
     }
 
-    private void showDeleteMarkerDialog(final org.maplibre.android.annotations.Marker marker) {
+    private void showDeleteMarkerDialog(final Marker marker) {
         new AlertDialog.Builder(this)
                 .setTitle("Delete Marker")
                 .setMessage("Do you want to delete this marker?")
@@ -286,7 +399,7 @@ public class Maps extends AppCompatActivity implements OnMapReadyCallback {
     private void toggleSearchBar() {
         searchCard.post(() -> {
             View searchContent = searchCard.findViewById(R.id.searchContent);
-            EditText input = searchCard.findViewById(R.id.searchInput);
+            AutoCompleteTextView input = searchCard.findViewById(R.id.searchInput); // Changed to AutoCompleteTextView
             ImageView searchIcon = searchCard.findViewById(R.id.searchIcon);
 
             if (isSearchExpanded) {
@@ -299,7 +412,7 @@ public class Maps extends AppCompatActivity implements OnMapReadyCallback {
         });
     }
 
-    private void animateCollapse(EditText input, ImageView icon) {
+    private void animateCollapse(AutoCompleteTextView input, ImageView icon) { // Changed parameter type
         ObjectAnimator fadeOut = ObjectAnimator.ofFloat(input, "alpha", 1f, 0f);
         ObjectAnimator shrinkX = ObjectAnimator.ofFloat(input, "scaleX", 1f, 0.8f);
         ObjectAnimator slideLeft = ObjectAnimator.ofFloat(input, "translationX", 0f, -50f);
@@ -323,7 +436,7 @@ public class Maps extends AppCompatActivity implements OnMapReadyCallback {
         collapseSet.start();
     }
 
-    private void animateExpand(EditText input, ImageView icon) {
+    private void animateExpand(AutoCompleteTextView input, ImageView icon) { // Changed parameter type
         input.setVisibility(View.VISIBLE);
         icon.setVisibility(View.VISIBLE);
 
@@ -362,26 +475,57 @@ public class Maps extends AppCompatActivity implements OnMapReadyCallback {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 
-    private void searchLocation(String location) {
-        Geocoder geocoder = new Geocoder(this);
+    private void searchLocation(String address) {
+        String apiKey = BuildConfig.MAPTILER_API_KEY;
+        String encodedAddress;
         try {
-            List<Address> addresses = geocoder.getFromLocationName(location, 1);
-
-            if (addresses != null && !addresses.isEmpty()) {
-                Address address = addresses.get(0);
-                double latitude = address.getLatitude();
-                double longitude = address.getLongitude();
-
-                addMarker(latitude, longitude, address.getAddressLine(0));
-                maplibreMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitude, longitude), 15));
-            } else {
-                showToast("Location not found");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            showToast("Error searching for location");
+            encodedAddress = URLEncoder.encode(address, "UTF-8");
+        } catch (Exception e) {
+            showToast("Error processing address");
+            return;
         }
+
+        String url = "https://api.maptiler.com/geocoding/" + encodedAddress + ".json?key=" + apiKey + "&limit=1";
+
+        Request request = new Request.Builder().url(url).build();
+
+        httpClient.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                runOnUiThread(() -> showToast("Error searching for location"));
+            }
+
+            @Override
+            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                if (!response.isSuccessful()) {
+                    runOnUiThread(() -> showToast("Location not found"));
+                    return;
+                }
+
+                String responseBody = response.body().string();
+                JsonObject jsonObject = new Gson().fromJson(responseBody, JsonObject.class);
+                JsonArray features = jsonObject.getAsJsonArray("features");
+
+                if (features.size() > 0) {
+                    JsonObject feature = features.get(0).getAsJsonObject();
+                    JsonArray center = feature.getAsJsonArray("center");
+                    double longitude = center.get(0).getAsDouble();
+                    double latitude = center.get(1).getAsDouble();
+                    String placeName = feature.get("place_name").getAsString();
+
+                    runOnUiThread(() -> {
+                        addMarker(latitude, longitude, placeName);
+                        maplibreMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                                new LatLng(latitude, longitude), 15));
+                    });
+                } else {
+                    runOnUiThread(() -> showToast("Location not found"));
+                }
+            }
+        });
     }
+
+
 
     @Override
     protected void onStart() {

@@ -16,7 +16,7 @@
         android:theme="@style/Theme.MyApplication">
 
         <activity
-            android:name=".LoginActivity"
+            android:name=".Maps"
             android:exported="true"
             android:theme="@style/Theme.MyApplication"
             tools:ignore="MissingClass">
