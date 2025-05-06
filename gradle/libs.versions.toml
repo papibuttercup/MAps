@@ -1,25 +1,48 @@
 [versions]
 agp = "8.9.2"
+androidPluginAnnotationV11 = "1.0.0"
+androidPluginMarkerviewV11 = "1.0.0"
+androidSdk = "11.8.7"
 kotlin = "2.0.21"
 coreKtx = "1.16.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
 appcompat = "1.7.0"
+mapboxAndroidPluginAnnotationV9 = "0.9.0"
+mapboxGeojson = "{latest_geojson_version}"
+mapboxGeojsonVersion = "6.9.0"
+maplibreAndroidSdk = "11.8.7"
 material = "1.12.0"
 activity = "1.10.1"
 constraintlayout = "2.2.1"
+materialVersion = "1.12.0"
+playServicesLocation = "21.3.0"
 playServicesMaps = "19.2.0"
+pluginAnnotation = "1.0.0"
 
 [libraries]
+android-plugin-annotation-v11 = { module = "org.maplibre.gl:android-plugin-annotation-v11", version.ref = "androidPluginAnnotationV11" }
+android-sdk = { module = "org.maplibre.gl:android-sdk", version.ref = "androidSdk" }
+android-sdk-ktx = { module = "org.maplibre.android:android-sdk-ktx", version.ref = "maplibreAndroidSdk" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+gl-android-plugin-markerview-v11 = { module = "org.maplibre.gl:android-plugin-markerview-v11", version.ref = "androidPluginMarkerviewV11" }
+gl-plugin-annotation = { module = "org.maplibre.gl:plugin-annotation", version.ref = "pluginAnnotation" }
+go_ogle-material = { module = "com.go  ogle.android.material:material", version.ref = "materialVersion" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+mapbox-android-plugin-annotation-v9 = { module = "com.mapbox.mapboxsdk:mapbox-android-plugin-annotation-v9", version.ref = "mapboxAndroidPluginAnnotationV9" }
+#noinspection SimilarGradleDependency
+mapbox-geojson = { module = "com.mapbox.geojson:mapbox-geojson", version.ref = "mapboxGeojson" }
+#noinspection SimilarGradleDependency
+mapbox-geojson-v690 = { module = "com.mapbox.geojson:mapbox-geojson", version.ref = "mapboxGeojsonVersion" }
+maplibre-android-sdk = { module = "org.maplibre.android:maplibre-android-sdk", version.ref = "maplibreAndroidSdk" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
+play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
 play-services-maps = { group = "com.google.android.gms", name = "play-services-maps", version.ref = "playServicesMaps" }
 
 [plugins]
