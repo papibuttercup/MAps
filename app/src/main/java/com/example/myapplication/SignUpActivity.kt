@@ -34,7 +34,7 @@ class SignUpActivity : AppCompatActivity() {
     private fun setupClickListeners() {
         binding.createAccountButton.setOnClickListener {
             if (validateForm()) {
-                createSellerAccount()
+                createAccount()
             }
         }
 
@@ -93,7 +93,7 @@ class SignUpActivity : AppCompatActivity() {
         return isValid
     }
 
-    private fun createSellerAccount() {
+    private fun createAccount() {
         val email = binding.emailEditText.text.toString()
         val password = binding.passwordEditText.text.toString()
 
@@ -103,7 +103,11 @@ class SignUpActivity : AppCompatActivity() {
                 if (task.isSuccessful) {
                     // User account created successfully
                     val userId = mAuth.currentUser?.uid
-                    saveUserToFirestore(userId)
+                    if (userId != null) {
+                        saveUserToFirestore(userId)
+                    } else {
+                        Toast.makeText(this, "Error: User ID is null", Toast.LENGTH_SHORT).show()
+                    }
                 } else {
                     // If account creation fails, display a message to the user.
                     Toast.makeText(this, "Account creation failed: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
@@ -111,26 +115,28 @@ class SignUpActivity : AppCompatActivity() {
             }
     }
 
-    private fun saveUserToFirestore(userId: String?) {
+    private fun saveUserToFirestore(userId: String) {
         val userData = mapOf(
             "firstName" to binding.firstNameEditText.text.toString(),
             "lastName" to binding.lastNameEditText.text.toString(),
             "email" to binding.emailEditText.text.toString(),
             "phone" to binding.phoneEditText.text.toString(),
-            "accountType" to "user" // Set account type to "user"
+            "accountType" to "user", // Set account type to "user"
+            "createdAt" to System.currentTimeMillis()
         )
 
         // Save user data to Firestore
-        userId?.let {
-            db.collection("users").document(it).set(userData)
-                .addOnSuccessListener {
-                    Toast.makeText(this, "Account created successfully!", Toast.LENGTH_SHORT).show()
-                    startActivity(Intent(this, Maps::class.java))
-                    finish()
-                }
-                .addOnFailureListener { e ->
-                    Toast.makeText(this, "Error saving user: ${e.message}", Toast.LENGTH_SHORT).show()
-                }
-        }
+        db.collection("users").document(userId).set(userData)
+            .addOnSuccessListener {
+                Toast.makeText(this, "Account created successfully!", Toast.LENGTH_SHORT).show()
+                // Sign out the user to force them to log in
+                mAuth.signOut()
+                // Go to login screen
+                startActivity(Intent(this, LoginActivity::class.java))
+                finish()
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(this, "Error saving user: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
     }
 }
