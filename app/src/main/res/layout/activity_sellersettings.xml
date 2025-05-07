@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:background="#FFFFFF"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
+
+    <!-- Top bar with X icon -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="12dp"
+        android:gravity="center_vertical"
+        android:background="#D3D3D3">
+
+        <ImageView
+            android:id="@+id/btnCloseSettings"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            app:tint="#000000" />
+
+        <TextView
+            android:layout_marginStart="8dp"
+            android:text="Settings"
+            android:textSize="20sp"
+            android:textColor="#000000"
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
+    <!-- Scrollable content -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:text="Seller Settings"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="16dp"
+                android:textColor="#000000"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/switch_notifications"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Enable Notifications" />
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/switch_auto_ship"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Auto Mark as Shipped" />
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/switch_contact_info"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Show My Contact Info to Buyers" />
+
+            <Button
+                android:id="@+id/btnSellerTips"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="View Seller Tips"
+                android:layout_marginTop="24dp"/>
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout>
