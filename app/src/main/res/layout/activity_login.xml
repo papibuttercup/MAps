@@ -2,7 +2,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFFFFF"
+    android:background="#121212"
     android:fillViewport="true">
 
     <LinearLayout
@@ -18,14 +18,14 @@
             android:text="Sign in"
             android:textSize="34sp"
             android:textStyle="bold"
-            android:textColor="@color/black"
+            android:textColor="#FFFFFF"
             android:paddingBottom="8dp" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Thriffe – Smart Spending, Stylish Saving."
-            android:textColor="#666666"
+            android:textColor="#B3FFFFFF"
             android:paddingBottom="24dp" />
 
         <!-- Email -->
@@ -34,18 +34,25 @@
             android:layout_height="wrap_content"
             android:text="Email"
             android:textStyle="bold"
+            android:textColor="#FFFFFF"
             android:paddingBottom="4dp" />
 
-        <EditText
-            android:id="@+id/emailEditText"
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:hint="Enter your email"
-            android:inputType="textEmailAddress"
-            android:background="@drawable/edittext_border"
-            android:padding="10dp"
-            android:textColorHint="#AAAAAA"
-            android:layout_marginBottom="16dp" />
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:textColorHint="#80FFFFFF"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/emailEditText"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:hint="Enter your email"
+                android:inputType="textEmailAddress"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#80FFFFFF" />
+        </com.google.android.material.textfield.TextInputLayout>
 
         <!-- Password -->
         <TextView
@@ -53,18 +60,25 @@
             android:layout_height="wrap_content"
             android:text="Password"
             android:textStyle="bold"
+            android:textColor="#FFFFFF"
             android:paddingBottom="4dp" />
 
-        <EditText
-            android:id="@+id/passwordEditText"
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:hint="Enter your password"
-            android:inputType="textPassword"
-            android:background="@drawable/edittext_border"
-            android:padding="10dp"
-            android:textColorHint="#AAAAAA"
-            android:layout_marginBottom="16dp" />
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:textColorHint="#80FFFFFF"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/passwordEditText"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:hint="Enter your password"
+                android:inputType="textPassword"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#80FFFFFF" />
+        </com.google.android.material.textfield.TextInputLayout>
 
         <!-- Remember Me & Forgot Password -->
         <RelativeLayout
@@ -77,6 +91,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Remember me"
+                android:textColor="#B3FFFFFF"
+                android:buttonTint="#BB86FC"
                 android:layout_alignParentStart="true" />
 
             <TextView
@@ -84,12 +100,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Forgot password?"
-                android:textColor="#1E88E5"
+                android:textColor="#03A9F4"
                 android:layout_alignParentEnd="true"
                 android:clickable="true" />
         </RelativeLayout>
 
-        <!-- Login Button -->
         <!-- ProgressBar with Login Button -->
         <FrameLayout
             android:layout_width="match_parent"
@@ -101,27 +116,31 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:visibility="gone" />
+                android:visibility="gone"
+                android:indeterminateTint="#BB86FC" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/loginButton"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:text="Login"
                 android:textColor="#FFFFFF"
                 android:textStyle="bold"
-                android:background="@drawable/rounded_button" />
+                android:backgroundTint="#03A9F4" />
         </FrameLayout>
+
         <!-- Create Account Button -->
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/createAccountButton"
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:text="Create Account"
-            android:textColor="#000000"
-            android:background="@drawable/rounded_button_outline"
-            android:layout_marginBottom="24dp"
-            android:onClick="onCreateAccountClicked"/>
+            android:textColor="#03A9F4"
+            android:backgroundTint="#1F1F1F"
+            android:strokeColor="#03A9F4"
+            android:strokeWidth="1"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_marginBottom="24dp" />
 
         <!-- Divider -->
         <RelativeLayout
@@ -132,15 +151,16 @@
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:background="#EEEEEE"
+                android:background="#2C2C2C"
                 android:layout_centerVertical="true" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Or continue with"
-                android:background="#FFFFFF"
+                android:background="#121212"
                 android:paddingHorizontal="8dp"
+                android:textColor="#B3FFFFFF"
                 android:layout_centerInParent="true" />
         </RelativeLayout>
 
@@ -153,33 +173,37 @@
             android:layout_marginBottom="24dp">
 
             <!-- Google Button -->
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/googleLoginButton"
-                style="@style/SocialLoginButton"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="0dp"
                 android:layout_height="50dp"
                 android:layout_marginEnd="8dp"
                 android:layout_weight="1"
-                android:background="@drawable/rounded_button_outline"
+                android:text="GOOGLE"
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#1F1F1F"
+                android:strokeColor="#2C2C2C"
                 android:drawableLeft="@drawable/ic_google"
                 android:drawablePadding="8dp"
-                android:text="GOOGLE"
                 android:gravity="center"
                 android:textAllCaps="true"
                 android:paddingStart="16dp"
                 android:paddingEnd="16dp" />
 
             <!-- Facebook Button -->
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/facebookLoginButton"
-                style="@style/SocialLoginButton"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="0dp"
                 android:layout_height="50dp"
                 android:layout_weight="1"
                 android:text="FACEBOOK"
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#1F1F1F"
+                android:strokeColor="#2C2C2C"
                 android:drawableLeft="@drawable/ic_facebook"
                 android:drawablePadding="8dp"
-                android:background="@drawable/rounded_button_outline"
                 android:gravity="center"
                 android:textAllCaps="true"
                 android:paddingStart="16dp"
@@ -199,14 +223,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Don't have an account? "
-                android:textColor="#666666"/>
+                android:textColor="#B3FFFFFF"/>
 
             <TextView
                 android:id="@+id/signUpText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Sign up"
-                android:textColor="#1E88E5"
+                android:textColor="#03A9F4"
                 android:textStyle="bold"
                 android:clickable="true"
                 android:focusable="true" />

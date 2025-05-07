@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
-    android:background="#F5F5F5">
+    android:background="#121212">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -12,14 +12,12 @@
         android:padding="24dp">
 
         <!-- Title -->
-
-        <!-- Subtitle -->
         <TextView
             android:id="@+id/title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Create your account"
-            android:textColor="#111111"
+            android:textColor="#FFFFFF"
             android:textSize="22sp"
             android:textStyle="bold" />
 
@@ -29,7 +27,7 @@
             android:layout_height="wrap_content"
             android:text="Thriffe – Smart Spending, Stylish Saving."
             android:textSize="14sp"
-            android:textColor="#888888"
+            android:textColor="#B3FFFFFF"
             android:layout_marginTop="4dp" />
 
         <!-- First and Last Name -->
@@ -39,64 +37,116 @@
             android:orientation="horizontal"
             android:layout_marginTop="16dp">
 
-            <EditText
-                android:id="@+id/firstNameEditText"
+            <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:hint="First Name"
-                android:inputType="textPersonName" />
+                android:layout_weight="1"
+                android:textColorHint="#80FFFFFF"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/firstNameEditText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="First Name"
+                    android:inputType="textPersonName"
+                    android:textColor="#FFFFFF"
+                    android:textColorHint="#80FFFFFF" />
+            </com.google.android.material.textfield.TextInputLayout>
 
             <Space
                 android:layout_width="8dp"
                 android:layout_height="wrap_content" />
 
-            <EditText
-                android:id="@+id/lastNameEditText"
+            <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:hint="Last Name"
-                android:inputType="textPersonName" />
+                android:layout_weight="1"
+                android:textColorHint="#80FFFFFF"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/lastNameEditText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Last Name"
+                    android:inputType="textPersonName"
+                    android:textColor="#FFFFFF"
+                    android:textColorHint="#80FFFFFF" />
+            </com.google.android.material.textfield.TextInputLayout>
         </LinearLayout>
 
-
-
         <!-- Email Address -->
-        <EditText
-            android:id="@+id/emailEditText"
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Email address"
             android:layout_marginTop="12dp"
-            android:inputType="textEmailAddress" />
+            android:textColorHint="#80FFFFFF"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/emailEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Email address"
+                android:inputType="textEmailAddress"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#80FFFFFF" />
+        </com.google.android.material.textfield.TextInputLayout>
 
         <!-- Phone Number -->
-        <EditText
-            android:id="@+id/phoneEditText"
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Phone Number"
             android:layout_marginTop="12dp"
-            android:inputType="phone" />
+            android:textColorHint="#80FFFFFF"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/phoneEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Phone Number"
+                android:inputType="phone"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#80FFFFFF" />
+        </com.google.android.material.textfield.TextInputLayout>
 
         <!-- Password -->
-        <EditText
-            android:id="@+id/passwordEditText"
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Password"
             android:layout_marginTop="12dp"
-            android:inputType="textPassword" />
+            android:textColorHint="#80FFFFFF"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/passwordEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Password"
+                android:inputType="textPassword"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#80FFFFFF" />
+        </com.google.android.material.textfield.TextInputLayout>
 
         <!-- Confirm Password -->
-        <EditText
-            android:id="@+id/confirmPasswordEditText"
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Confirm Password"
             android:layout_marginTop="12dp"
-            android:inputType="textPassword" />
+            android:textColorHint="#80FFFFFF"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/confirmPasswordEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Confirm Password"
+                android:inputType="textPassword"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#80FFFFFF" />
+        </com.google.android.material.textfield.TextInputLayout>
 
         <!-- Terms Checkbox -->
         <CheckBox
@@ -104,17 +154,19 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="I agree to the Terms of Service and Privacy Policy"
+            android:textColor="#B3FFFFFF"
+            android:buttonTint="#BB86FC"
             android:layout_marginTop="16dp" />
 
         <!-- Create Account Button -->
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/createAccountButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Create Account"
             android:layout_marginTop="16dp"
-            android:backgroundTint="#2A62F4"
-            android:textColor="@android:color/white" />
+            android:backgroundTint="#BB86FC"
+            android:textColor="#FFFFFF" />
 
         <!-- Sign In link -->
         <TextView
@@ -122,7 +174,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Already have an account? Sign in"
-            android:textColor="#2A62F4"
+            android:textColor="#BB86FC"
             android:textSize="14sp"
             android:layout_gravity="center"
             android:layout_marginTop="16dp" />
