@@ -204,7 +204,8 @@ public class Maps extends AppCompatActivity implements OnMapReadyCallback {
         });
 
         popupView.findViewById(R.id.menu_seller).setOnClickListener(v -> {
-            Toast.makeText(this, "seller clicked", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(this, CreateSellerAccountActivity.class);
+            startActivity(intent);
             popupWindow.dismiss();
         });
     }
