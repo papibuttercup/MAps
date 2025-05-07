@@ -127,9 +127,9 @@ class LoginActivity : AppCompatActivity() {
                             auth.signOut()
                         }
                         "approved" -> {
-                            Log.d(TAG, "Seller approved, proceeding to Maps")
-                            // Seller account is verified, proceed to Maps
-                            val intent = Intent(this, Maps::class.java).apply {
+                            Log.d(TAG, "Seller approved, proceeding to SellerMainActivity")
+                            // Seller account is verified, proceed to SellerMainActivity
+                            val intent = Intent(this, SellerMainActivity::class.java).apply {
                                 putExtra("accountType", "seller")
                                 putExtra("email", email)
                             }

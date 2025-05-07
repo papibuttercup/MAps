@@ -43,6 +43,8 @@
 
         <activity android:name=".AccountInfoActivity"
             android:exported="false"/>
+        <activity android:name=".SellerMainActivity" 
+            android:exported="false"/>
         <activity android:name=".CategoriesActivity"
             android:exported="false"/>
         <activity android:name=".SettingsActivity"
