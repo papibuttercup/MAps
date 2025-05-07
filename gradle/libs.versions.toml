@@ -20,6 +20,7 @@ materialVersion = "1.12.0"
 playServicesLocation = "21.3.0"
 playServicesMaps = "19.2.0"
 pluginAnnotation = "1.0.0"
+gridlayout = "1.1.0"
 
 [libraries]
 android-plugin-annotation-v11 = { module = "org.maplibre.gl:android-plugin-annotation-v11", version.ref = "androidPluginAnnotationV11" }
@@ -44,6 +45,7 @@ androidx-activity = { group = "androidx.activity", name = "activity", version.re
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
 play-services-maps = { group = "com.google.android.gms", name = "play-services-maps", version.ref = "playServicesMaps" }
+androidx-gridlayout = { group = "androidx.gridlayout", name = "gridlayout", version.ref = "gridlayout" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

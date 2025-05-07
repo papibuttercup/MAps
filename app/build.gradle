@@ -64,6 +64,7 @@ dependencies {
     // Google Location Services (for FusedLocationProvider)
     implementation 'com.google.android.gms:play-services-location:18.0.0'
     implementation 'com.google.android.gms:play-services-maps:18.1.0'
+    implementation libs.androidx.gridlayout
 
     // Testing
     testImplementation 'junit:junit:4.13.2'

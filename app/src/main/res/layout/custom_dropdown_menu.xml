@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:background="@drawable/dropdown_background"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:padding="8dp">
+
+    <TextView android:id="@+id/menu_account"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Account"
+        android:padding="8dp"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <TextView android:id="@+id/menu_categories"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Categories"
+        android:padding="8dp"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <TextView android:id="@+id/menu_settings"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Settings"
+        android:padding="8dp"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <TextView android:id="@+id/menu_help"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="Help"
+    android:padding="8dp"
+    android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <TextView android:id="@+id/menu_seller"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Want to be seller?"
+        android:padding="8dp"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+</LinearLayout>

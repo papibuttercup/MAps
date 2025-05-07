@@ -1,37 +1,34 @@
 package com.example.myapplication;
 
 import android.Manifest;
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.animation.AnimatorSet;
-import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.content.Context;
 
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
-import android.view.animation.AccelerateDecelerateInterpolator;
-import android.view.animation.OvershootInterpolator;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.ImageView;
+import android.widget.PopupMenu;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
@@ -61,6 +58,7 @@ import java.lang.reflect.Type;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.Call;
@@ -79,13 +77,15 @@ public class Maps extends AppCompatActivity implements OnMapReadyCallback {
     private GeocodingService geocodingService;
     private MapView mapView;
     private MapLibreMap maplibreMap;
-    private CardView searchCard;
+
     private boolean isSearchExpanded = true;
 
     private LocationComponent locationComponent;
     private FloatingActionButton gpsFab;
     private boolean isTracking = false;
     private LatLng lastKnownLocation;
+    private View menuIcon;
+    private ImageView searchIcon;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,17 +97,17 @@ public class Maps extends AppCompatActivity implements OnMapReadyCallback {
         setContentView(rootView);
 
         mapView = findViewById(R.id.mapView);
-        searchCard = findViewById(R.id.searchCard);
-        ImageView menuIcon = findViewById(R.id.menuIcon);
+        menuIcon = findViewById(R.id.menuIcon);
         searchInput = findViewById(R.id.searchInput);
         gpsFab = findViewById(R.id.gpsFab);
+        searchIcon = findViewById(R.id.searchIcon);
 
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
 
         gpsFab.setOnClickListener(v -> toggleGpsTracking());
-        menuIcon.setOnClickListener(v -> toggleSearchBar());
-
+        menuIcon.setOnClickListener(this::showMenuDropdown);
+        searchIcon.setOnClickListener(v -> performSearch());
         httpClient = new OkHttpClient.Builder()
                 .connectTimeout(10, TimeUnit.SECONDS)
                 .readTimeout(10, TimeUnit.SECONDS)
@@ -140,12 +140,79 @@ public class Maps extends AppCompatActivity implements OnMapReadyCallback {
             }
         });
     }
+    private void showMenuDropdown(View anchor) {
+        View popupView = LayoutInflater.from(this).inflate(R.layout.custom_dropdown_menu, null);
+
+        PopupWindow popupWindow = new PopupWindow(popupView,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                true); // Focusable so it will close when clicking outside
+
+        // Calculate proper positioning
+        int[] anchorLocation = new int[2];
+        anchor.getLocationOnScreen(anchorLocation);
+
+        // Get screen dimensions
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        int screenHeight = displayMetrics.heightPixels;
+
+        // Measure the popup view first to get its width
+        popupView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+        int popupWidth = popupView.getMeasuredWidth();
+        int popupHeight = popupView.getMeasuredHeight();
+
+        int xPos = anchorLocation[0];
+
+        // Position below menu icon with 10px margin
+        int yPos = anchorLocation[1] + anchor.getHeight() + 32;
+
+        // Ensure dropdown doesn't go off screen bottom
+        if (yPos + popupHeight > screenHeight) {
+            // If dropdown would go off bottom of screen, show above instead
+            yPos = anchorLocation[1] - popupHeight - 10;
+        }
+
+        // Show popup
+        popupWindow.showAtLocation(anchor, Gravity.NO_GRAVITY, xPos, yPos);
+
+        // Handle menu item clicks
+        popupView.findViewById(R.id.menu_account).setOnClickListener(v -> {
+            // Start the AccountInfoActivity
+            android.content.Intent intent = new android.content.Intent(this, AccountInfoActivity.class);
+            startActivity(intent);
+            popupWindow.dismiss();
+        });
+
+        popupView.findViewById(R.id.menu_categories).setOnClickListener(v -> {
+            // Start the CategoriesActivity
+            Intent intent = new Intent(this, CategoriesActivity.class);
+            startActivity(intent);
+            popupWindow.dismiss();
+        });
+
+        popupView.findViewById(R.id.menu_settings).setOnClickListener(v -> {
+            // Start the SettingsActivity
+            Intent intent = new Intent(this, SettingsActivity.class);
+            startActivity(intent);
+            popupWindow.dismiss();
+        });
+
+        popupView.findViewById(R.id.menu_help).setOnClickListener(v -> {
+            Toast.makeText(this, "Help clicked", Toast.LENGTH_SHORT).show();
+            popupWindow.dismiss();
+        });
+
+        popupView.findViewById(R.id.menu_seller).setOnClickListener(v -> {
+            Toast.makeText(this, "seller clicked", Toast.LENGTH_SHORT).show();
+            popupWindow.dismiss();
+        });
+    }
 
     private void performSearch() {
         String searchText = searchInput.getText().toString().trim();
         if (!searchText.isEmpty()) {
             searchLocation(searchText);
-            hideKeyboard();
         } else {
             showToast("Please enter a location");
         }
@@ -360,10 +427,6 @@ public class Maps extends AppCompatActivity implements OnMapReadyCallback {
             gpsFab.setImageResource(R.drawable.ic_gps_fixed);
             showToast("GPS Tracking Enabled");
 
-            Location lastLocation = locationComponent.getLastKnownLocation();
-            if (lastLocation != null) {
-                addMarker(lastLocation.getLatitude(), lastLocation.getLongitude(), "Current Location");
-            }
         } else {
             locationComponent.setCameraMode(CameraMode.NONE);
             locationComponent.setRenderMode(RenderMode.NORMAL);
@@ -394,81 +457,6 @@ public class Maps extends AppCompatActivity implements OnMapReadyCallback {
                 })
                 .setNegativeButton("No", null)
                 .show();
-    }
-
-    private void toggleSearchBar() {
-        searchCard.post(() -> {
-            View searchContent = searchCard.findViewById(R.id.searchContent);
-            AutoCompleteTextView input = searchCard.findViewById(R.id.searchInput); // Changed to AutoCompleteTextView
-            ImageView searchIcon = searchCard.findViewById(R.id.searchIcon);
-
-            if (isSearchExpanded) {
-                animateCollapse(input, searchIcon);
-            } else {
-                animateExpand(input, searchIcon);
-            }
-
-            isSearchExpanded = !isSearchExpanded;
-        });
-    }
-
-    private void animateCollapse(AutoCompleteTextView input, ImageView icon) { // Changed parameter type
-        ObjectAnimator fadeOut = ObjectAnimator.ofFloat(input, "alpha", 1f, 0f);
-        ObjectAnimator shrinkX = ObjectAnimator.ofFloat(input, "scaleX", 1f, 0.8f);
-        ObjectAnimator slideLeft = ObjectAnimator.ofFloat(input, "translationX", 0f, -50f);
-        ObjectAnimator iconFadeOut = ObjectAnimator.ofFloat(icon, "alpha", 1f, 0f);
-
-        AnimatorSet collapseSet = new AnimatorSet();
-        collapseSet.playTogether(fadeOut, shrinkX, slideLeft, iconFadeOut);
-        collapseSet.setDuration(300);
-        collapseSet.setInterpolator(new AccelerateDecelerateInterpolator());
-
-        collapseSet.addListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                input.setVisibility(View.GONE);
-                icon.setVisibility(View.GONE);
-                input.setTranslationX(0f); // reset position
-                hideKeyboard();
-            }
-        });
-
-        collapseSet.start();
-    }
-
-    private void animateExpand(AutoCompleteTextView input, ImageView icon) { // Changed parameter type
-        input.setVisibility(View.VISIBLE);
-        icon.setVisibility(View.VISIBLE);
-
-        input.setScaleX(0f);
-        input.setAlpha(0f);
-        icon.setAlpha(0f);
-
-        ObjectAnimator fadeIn = ObjectAnimator.ofFloat(input, "alpha", 0f, 1f);
-        ObjectAnimator growX = ObjectAnimator.ofFloat(input, "scaleX", 0f, 1f);
-        ObjectAnimator iconFadeIn = ObjectAnimator.ofFloat(icon, "alpha", 0f, 1f);
-
-        AnimatorSet expandSet = new AnimatorSet();
-        expandSet.playTogether(fadeIn, growX, iconFadeIn);
-        expandSet.setDuration(250);
-        expandSet.setInterpolator(new OvershootInterpolator());
-
-        expandSet.start();
-        showKeyboard();
-    }
-
-    private void hideKeyboard() {
-        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        if (imm != null) {
-            imm.hideSoftInputFromWindow(searchInput.getWindowToken(), 0);
-        }
-    }
-
-    private void showKeyboard() {
-        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        if (imm != null) {
-            imm.showSoftInput(searchInput, InputMethodManager.SHOW_IMPLICIT);
-        }
     }
 
     private void showToast(String message) {
