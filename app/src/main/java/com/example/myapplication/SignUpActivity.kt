@@ -8,7 +8,9 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.myapplication.databinding.ActivitySignupBinding
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.ktx.Firebase
 
 class SignUpActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySignupBinding
@@ -23,7 +25,7 @@ class SignUpActivity : AppCompatActivity() {
 
         // Initialize Firebase
         FirebaseApp.initializeApp(this)
-        mAuth = FirebaseAuth.getInstance()
+        mAuth = Firebase.auth
         db = FirebaseFirestore.getInstance()
 
         setupClickListeners()

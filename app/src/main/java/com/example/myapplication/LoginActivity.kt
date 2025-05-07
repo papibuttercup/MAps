@@ -10,7 +10,9 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.myapplication.databinding.ActivityLoginBinding
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.ktx.Firebase
 
 class LoginActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding
@@ -24,10 +26,22 @@ class LoginActivity : AppCompatActivity() {
         setContentView(binding.root)
         supportActionBar?.hide()
 
-        auth = FirebaseAuth.getInstance()
+        // Initialize Firebase Auth
+        auth = Firebase.auth
         firestore = FirebaseFirestore.getInstance()
 
+        // Check if user is already logged in
+        checkCurrentUser()
+
         setupClickListeners()
+    }
+
+    private fun checkCurrentUser() {
+        val currentUser = auth.currentUser
+        if (currentUser != null) {
+            // User is already logged in, check their account type
+            checkAccountType(currentUser.email ?: "")
+        }
     }
 
     private fun setupClickListeners() {
@@ -62,6 +76,7 @@ class LoginActivity : AppCompatActivity() {
     private fun handleLogin() {
         val email = binding.emailEditText.text.toString().trim()
         val password = binding.passwordEditText.text.toString().trim()
+        val rememberMe = binding.rememberMe.isChecked
 
         if (validateLoginForm(email, password)) {
             showLoading(true)
@@ -80,21 +95,6 @@ class LoginActivity : AppCompatActivity() {
                     }
                 }
         }
-    }
-    private fun handleRegularUserLogin(email: String, password: String) {
-        auth.signInWithEmailAndPassword(email, password)
-            .addOnCompleteListener { authTask ->
-                if (authTask.isSuccessful) {
-                    checkAccountType(email)
-                } else {
-                    showLoading(false)
-                    Toast.makeText(
-                        this,
-                        "Authentication failed: ${authTask.exception?.message}",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
-            }
     }
 
     private fun checkAccountType(email: String) {
@@ -144,7 +144,6 @@ class LoginActivity : AppCompatActivity() {
                 auth.signOut()
             }
     }
-
 
     private fun showLoading(show: Boolean) {
         binding.progressBar.visibility = if (show) View.VISIBLE else View.GONE
