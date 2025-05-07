@@ -80,23 +80,33 @@ class ModeratorActivity : AppCompatActivity() {
     }
 
     private fun showUserManagementDialog() {
-        MaterialAlertDialogBuilder(this).apply {
+        val dialog = MaterialAlertDialogBuilder(this).apply {
             setTitle("Manage Users")
             setView(createUserListView())
             setPositiveButton("Close", null)
-            show()
+        }.create()
+
+        dialog.setOnShowListener {
+            // Set maximum height to 80% of screen height
+            val maxHeight = (resources.displayMetrics.heightPixels * 0.8).toInt()
+            dialog.window?.setLayout(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                maxHeight
+            )
         }
+
+        dialog.show()
     }
 
     private fun createUserListView(): View {
         return LayoutInflater.from(this).inflate(R.layout.dialog_user_management, null).apply {
-            findViewById<RecyclerView>(R.id.usersRecyclerView).setupRecyclerView()
+            findViewById<RecyclerView>(R.id.usersRecyclerView)?.apply {
+                layoutManager = LinearLayoutManager(context)
+                adapter = this@ModeratorActivity.adapter
+                setHasFixedSize(true)
+                visibility = View.VISIBLE
+            }
         }
-    }
-
-    private fun RecyclerView.setupRecyclerView() {
-        layoutManager = LinearLayoutManager(context)
-        adapter = this@ModeratorActivity.adapter
     }
 
     private fun deleteUser(user: User) {
