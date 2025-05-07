@@ -4,8 +4,9 @@
     package="com.example.myapplication"
     tools:targetApi="31">
 
-    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Permissions -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:allowBackup="true"
@@ -17,6 +18,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MyApplication">
 
+        <!-- Launcher Activity -->
         <activity
             android:name=".LoginActivity"
             android:exported="true"
@@ -27,27 +29,21 @@
             </intent-filter>
         </activity>
 
-        <activity
-            android:name=".Maps"
+        <!-- App Activities -->
+        <activity android:name=".AccountInfoActivity"
+            android:exported="false" />
+        <activity android:name=".CategoriesActivity"
+            android:exported="false" />
+        <activity android:name=".Maps"
             android:exported="true" />
-
-        <activity
-            android:name=".SignUpActivity"
-            android:exported="true" />
-
-        <activity
-            android:name=".ModeratorActivity"
+        <activity android:name=".ModeratorActivity"
             android:exported="false"
             android:enableOnBackInvokedCallback="true"
             tools:targetApi="33" />
-
-        <activity android:name=".AccountInfoActivity"
-            android:exported="false"/>
-        <activity android:name=".CategoriesActivity"
-            android:exported="false"/>
         <activity android:name=".SettingsActivity"
-            android:exported="false"/>
-        <activity android:name=".CreateSellerAccountActivity"
-            android:exported="false"/>
+            android:exported="false" />
+        <activity android:name=".SignUpActivity"
+            android:exported="true" />
+
     </application>
 </manifest>
