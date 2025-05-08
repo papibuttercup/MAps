@@ -33,63 +33,25 @@
             android:textColor="#444444" />
     </LinearLayout>
 
-    <!-- Content section with image and rows -->
+    <!-- TabLayout -->
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#FFFFFF"
+        app:tabTextColor="#000000"
+        app:tabSelectedTextColor="#000000"
+        app:tabIndicatorColor="#000000"/>
 
-    <!-- Bottom Navigation Bar -->
-    <LinearLayout
+    <!-- ViewPager2 -->
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPager"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:background="#FFFFFF"
-        android:orientation="vertical">
+        android:background="#FFFFFF"/>
 
-        <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="180dp"
-            android:scaleType="centerCrop"
-            android:src="@drawable/market" />
-
-        <include
-            android:id="@+id/row_listed_items"
-            layout="@layout/menu_row" />
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#000000" />
-
-        <include
-            android:id="@+id/row_total_sales"
-            layout="@layout/menu_row" />
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#000000" />
-
-        <include
-            android:id="@+id/row_total_views"
-            layout="@layout/menu_row" />
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#000000" />
-
-        <include
-            android:id="@+id/row_orders"
-            layout="@layout/menu_row" />
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#000000" />
-
-        <include
-            android:id="@+id/row_reviews"
-            layout="@layout/menu_row" />
-    </LinearLayout>
-
+    <!-- Bottom Navigation Bar -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -118,29 +80,6 @@
                 android:textSize="12sp"
                 android:textColor="#000000" />
         </LinearLayout>
-
-
-        <LinearLayout
-            android:id="@+id/privacyButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center">
-
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@android:drawable/ic_menu_info_details" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Privacy and Policy"
-                android:textSize="12sp"
-                android:textColor="#000000" />
-        </LinearLayout>
-
 
         <LinearLayout
             android:id="@+id/settingsButton"

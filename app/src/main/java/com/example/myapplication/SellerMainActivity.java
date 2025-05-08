@@ -4,15 +4,17 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.ImageView;
-import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.viewpager2.widget.ViewPager2;
+import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
 import com.google.firebase.auth.FirebaseAuth;
 
 public class SellerMainActivity extends AppCompatActivity {
-
     private FirebaseAuth mAuth;
+    private ViewPager2 viewPager;
+    private TabLayout tabLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,12 +23,29 @@ public class SellerMainActivity extends AppCompatActivity {
 
         mAuth = FirebaseAuth.getInstance();
 
-        // Initialize and setup all menu rows
-        setupRow(R.id.row_listed_items, "Listed Items", ListedItemsActivity.class);
-        setupRow(R.id.row_total_sales, "Total Sales", TotalSalesActivity.class);
-        setupRow(R.id.row_total_views, "Total Views", TotalViewsActivity.class);
-        setupRow(R.id.row_orders, "Orders", OrderDetailsActivity.class);
-        setupRow(R.id.row_reviews, "Reviews", ReviewsActivity.class);
+        viewPager = findViewById(R.id.viewPager);
+        tabLayout = findViewById(R.id.tabLayout);
+
+        // Disable ViewPager2 swipe
+        viewPager.setUserInputEnabled(false);
+
+        // Setup ViewPager2 with fragments
+        SellerPagerAdapter pagerAdapter = new SellerPagerAdapter(this);
+        viewPager.setAdapter(pagerAdapter);
+
+        // Connect TabLayout with ViewPager2
+        new TabLayoutMediator(tabLayout, viewPager,
+            (tab, position) -> {
+                switch (position) {
+                    case 0:
+                        tab.setText("Dashboard");
+                        break;
+                    case 1:
+                        tab.setText("Location");
+                        break;
+                }
+            }
+        ).attach();
 
         // Setup bottom navigation buttons
         findViewById(R.id.faqButton).setOnClickListener(v ->
@@ -35,17 +54,7 @@ public class SellerMainActivity extends AppCompatActivity {
                 startActivity(new Intent(this, SettingSellerAct.class)));
 
         // Logout button
-        ImageView btnClose = findViewById(R.id.btnClose);
-        btnClose.setOnClickListener(v -> logoutUser());
-    }
-
-    private void setupRow(int rowId, String title, Class<?> targetActivity) {
-        findViewById(rowId).setOnClickListener(v ->
-                startActivity(new Intent(this, targetActivity)));
-
-        // If you need to set the title text programmatically:
-        TextView titleView = findViewById(rowId).findViewById(R.id.menuText);
-        titleView.setText(title);
+        findViewById(R.id.btnClose).setOnClickListener(v -> logoutUser());
     }
 
     private void logoutUser() {

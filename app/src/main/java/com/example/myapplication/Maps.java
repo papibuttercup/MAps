@@ -37,6 +37,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -377,60 +378,36 @@ public class Maps extends AppCompatActivity implements OnMapReadyCallback {
             enableLocationComponent(style);
         }
 
-        // Set marker click listener to show the delete option
-        // Set marker click listener to show the delete option (only for sellers)
-        // Set marker click listener (only verified sellers can delete)
-        maplibreMap.setOnMarkerClickListener(marker -> {
-            if (isVerifiedSeller) {
-                showDeleteMarkerDialog(marker);
-            }
-            return true;
-        });
+        // Load all seller markers
+        loadAllSellerMarkers();
 
-        // Only allow long press to add markers if user is a verified seller
-        if (isVerifiedSeller) {
-            maplibreMap.addOnMapLongClickListener(point -> {
-                addMarker(point.getLatitude(), point.getLongitude(), "Custom Marker");
-                return true;
-            });
-        }
-
-        loadMarkers();
+        // Disable marker click listener since this is view-only
+        maplibreMap.setOnMarkerClickListener(marker -> false);
     }
 
-    private void saveMarkers() {
-        List<MarkerData> markers = new ArrayList<>();
-        for (Marker marker : maplibreMap.getMarkers()) {
-            markers.add(new MarkerData(
-                    marker.getPosition().getLatitude(),
-                    marker.getPosition().getLongitude(),
-                    marker.getTitle()
-            ));
-        }
-
-        String json = new Gson().toJson(markers);
-        getSharedPreferences(MARKERS_PREF, MODE_PRIVATE)
-                .edit()
-                .putString(MARKERS_KEY, json)
-                .apply();
-    }
-
-    private void loadMarkers() {
-        String json = getSharedPreferences(MARKERS_PREF, MODE_PRIVATE)
-                .getString(MARKERS_KEY, null);
-
-        if (json != null) {
-            Type type = new TypeToken<List<MarkerData>>(){}.getType();
-            List<MarkerData> markers = new Gson().fromJson(json, type);
-
-            if (markers != null) {
-                for (MarkerData markerData : markers) {
-                    maplibreMap.addMarker(new MarkerOptions()
-                            .position(new LatLng(markerData.getLatitude(), markerData.getLongitude()))
-                            .setTitle(markerData.getTitle()));
+    private void loadAllSellerMarkers() {
+        db.collection("seller_markers")
+            .get()
+            .addOnSuccessListener(queryDocumentSnapshots -> {
+                for (DocumentSnapshot document : queryDocumentSnapshots) {
+                    Double lat = document.getDouble("latitude");
+                    Double lng = document.getDouble("longitude");
+                    String title = document.getString("title");
+                    
+                    if (lat != null && lng != null && title != null) {
+                        MarkerOptions markerOptions = new MarkerOptions()
+                            .position(new LatLng(lat, lng))
+                            .title(title);
+                        
+                        maplibreMap.addMarker(markerOptions);
+                    }
                 }
-            }
-        }
+            })
+            .addOnFailureListener(e -> {
+                String errorMessage = "Error loading markers: " + e.getMessage();
+                Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show();
+                Log.e("Maps", errorMessage, e);
+            });
     }
 
     private boolean checkLocationPermission() {
@@ -514,21 +491,6 @@ public class Maps extends AppCompatActivity implements OnMapReadyCallback {
 
         maplibreMap.animateCamera(CameraUpdateFactory.newLatLngZoom(position, 15));
         showToast("Marker added: " + title);
-        saveMarkers();
-    }
-
-    private void showDeleteMarkerDialog(final Marker marker) {
-
-        new AlertDialog.Builder(this)
-                .setTitle("Delete Marker")
-                .setMessage("Do you want to delete this marker?")
-                .setPositiveButton("Yes", (dialog, which) -> {
-                    marker.remove();
-                    saveMarkers(); // Save after deletion
-                    showToast("Marker deleted");
-                })
-                .setNegativeButton("No", null)
-                .show();
     }
 
     private void showToast(String message) {
@@ -585,8 +547,6 @@ public class Maps extends AppCompatActivity implements OnMapReadyCallback {
         });
     }
 
-
-
     @Override
     protected void onStart() {
         super.onStart();
@@ -619,7 +579,6 @@ public class Maps extends AppCompatActivity implements OnMapReadyCallback {
 
     @Override
     protected void onDestroy() {
-        saveMarkers(); // Save markers when app closes
         super.onDestroy();
         mapView.onDestroy();
     }
@@ -628,22 +587,5 @@ public class Maps extends AppCompatActivity implements OnMapReadyCallback {
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         mapView.onSaveInstanceState(outState);
-    }
-
-    // Inner class for marker data persistence
-    private static class MarkerData {
-        private double latitude;
-        private double longitude;
-        private String title;
-
-        public MarkerData(double latitude, double longitude, String title) {
-            this.latitude = latitude;
-            this.longitude = longitude;
-            this.title = title;
-        }
-
-        public double getLatitude() { return latitude; }
-        public double getLongitude() { return longitude; }
-        public String getTitle() { return title; }
     }
 }
