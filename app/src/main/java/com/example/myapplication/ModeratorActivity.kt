@@ -31,6 +31,7 @@ import com.example.myapplication.databinding.FragmentUserManagementBinding
 import com.example.myapplication.User
 import com.example.myapplication.UserAdapter
 import com.google.android.material.tabs.TabLayoutMediator
+import android.content.Intent
 
 class ModeratorActivity : AppCompatActivity() {
     private val auth by lazy { FirebaseAuth.getInstance() }
@@ -205,7 +206,6 @@ class UserManagementFragment : Fragment() {
                 .addSnapshotListener { snapshot, e ->
                     if (e != null) {
                         Log.e("UserManagement", "Listen failed.", e)
-                        Toast.makeText(context, "Error loading users: ${e.message}", Toast.LENGTH_SHORT).show()
                         return@addSnapshotListener
                     }
 
@@ -259,7 +259,6 @@ class UserManagementFragment : Fragment() {
                 }
         } catch (e: Exception) {
             Log.e("UserManagement", "Error in loadUsers", e)
-            Toast.makeText(context, "Error loading users: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -270,10 +269,8 @@ class UserManagementFragment : Fragment() {
             setPositiveButton("Delete") { _, _ ->
                 db.collection("users").document(user.id).delete()
                     .addOnSuccessListener {
-                        Toast.makeText(context, "User deleted", Toast.LENGTH_SHORT).show()
                     }
                     .addOnFailureListener { e ->
-                        Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
                     }
             }
             setNegativeButton("Cancel", null)
@@ -286,10 +283,8 @@ class UserManagementFragment : Fragment() {
         db.collection("users").document(user.id)
             .update("isDisabled", newStatus)
             .addOnSuccessListener {
-                Toast.makeText(context, "User ${if (newStatus) "disabled" else "enabled"}", Toast.LENGTH_SHORT).show()
             }
             .addOnFailureListener { e ->
-                Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
             }
     }
 }
@@ -335,7 +330,6 @@ class SellerVerificationFragment : Fragment() {
                 .addSnapshotListener { snapshot, e ->
                     if (e != null) {
                         Log.e("SellerVerification", "Listen failed.", e)
-                        Toast.makeText(context, "Error loading sellers: ${e.message}", Toast.LENGTH_SHORT).show()
                         return@addSnapshotListener
                     }
 
@@ -382,7 +376,6 @@ class SellerVerificationFragment : Fragment() {
                 }
         } catch (e: Exception) {
             Log.e("SellerVerification", "Error in loadPendingSellers", e)
-            Toast.makeText(context, "Error loading sellers: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -391,15 +384,12 @@ class SellerVerificationFragment : Fragment() {
             db.collection("sellers").document(seller.id)
                 .update("verificationStatus", "approved")
                 .addOnSuccessListener {
-                    Toast.makeText(context, "Seller approved successfully", Toast.LENGTH_SHORT).show()
                 }
                 .addOnFailureListener { e ->
                     Log.e("SellerVerification", "Error approving seller", e)
-                    Toast.makeText(context, "Error approving seller: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
         } catch (e: Exception) {
             Log.e("SellerVerification", "Error in approveSeller", e)
-            Toast.makeText(context, "Error approving seller: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -408,15 +398,12 @@ class SellerVerificationFragment : Fragment() {
             db.collection("sellers").document(seller.id)
                 .update("verificationStatus", "rejected")
                 .addOnSuccessListener {
-                    Toast.makeText(context, "Seller rejected", Toast.LENGTH_SHORT).show()
                 }
                 .addOnFailureListener { e ->
                     Log.e("SellerVerification", "Error rejecting seller", e)
-                    Toast.makeText(context, "Error rejecting seller: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
         } catch (e: Exception) {
             Log.e("SellerVerification", "Error in rejectSeller", e)
-            Toast.makeText(context, "Error rejecting seller: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 }

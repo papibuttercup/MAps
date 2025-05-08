@@ -94,5 +94,10 @@
             android:name=".SettingSellerAct"
             android:exported="false"
             android:theme="@style/Theme.MyApplication"/>
+
+        <activity
+            android:name=".ListNewItemActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MyApplication"/>
     </application>
 </manifest>
