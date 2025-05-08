@@ -114,7 +114,19 @@ class LoginActivity : AppCompatActivity() {
                 if (!sellerDocuments.isEmpty) {
                     val sellerDoc = sellerDocuments.documents[0]
                     val verificationStatus = sellerDoc.getString("verificationStatus")
-                    Log.d(TAG, "Seller verification status: $verificationStatus")
+                    val isDisabled = sellerDoc.getBoolean("isDisabled") ?: false
+                    Log.d(TAG, "Seller verification status: $verificationStatus, isDisabled: $isDisabled")
+                    
+                    if (isDisabled) {
+                        showLoading(false)
+                        Toast.makeText(
+                            this,
+                            "This account has been disabled. Please contact support for assistance.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        auth.signOut()
+                        return@addOnSuccessListener
+                    }
                     
                     when (verificationStatus) {
                         "pending" -> {
@@ -188,7 +200,19 @@ class LoginActivity : AppCompatActivity() {
                 } else {
                     val userDoc = documents.documents[0]
                     val accountType = userDoc.getString("accountType") ?: "user"
-                    Log.d(TAG, "User account type: $accountType")
+                    val isDisabled = userDoc.getBoolean("isDisabled") ?: false
+                    Log.d(TAG, "User account type: $accountType, isDisabled: $isDisabled")
+
+                    if (isDisabled) {
+                        Log.d(TAG, "Account is disabled")
+                        Toast.makeText(
+                            this,
+                            "This account has been disabled. Please contact support for assistance.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        auth.signOut()
+                        return@addOnSuccessListener
+                    }
 
                     when (accountType) {
                         "moderator" -> {
