@@ -17,7 +17,7 @@
         android:label="@string/Thriffty"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+        android:theme="@style/Theme.MyApplication">
 
         <activity
             android:name=".LoginActivity"
@@ -35,31 +35,64 @@
 
         <activity
             android:name=".SignUpActivity"
-            android:exported="true" />
+            android:exported="false"
+            android:theme="@style/Theme.MyApplication" />
+
+        <activity
+            android:name=".ForgotPasswordActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MyApplication" />
 
         <activity
             android:name=".ModeratorActivity"
             android:exported="false"
             android:enableOnBackInvokedCallback="true"
+            android:theme="@style/Theme.MyApplication"
             tools:targetApi="33" />
 
-        <activity android:name=".AccountInfoActivity"
-            android:exported="false"/>
-        <activity android:name=".SellerMainActivity" 
-            android:exported="false"/>
-        <activity android:name=".CategoriesActivity"
-            android:exported="false"/>
-        <activity android:name=".SettingsActivity"
-            android:exported="false"/>
-        <activity android:name=".CreateSellerAccountActivity"
-            android:exported="false"/>
-        <activity android:name=".ListedItemsActivity"
-            android:exported="false"/>
-        <activity android:name=".OrderDetailsActivity"
-            android:exported="false"/>
-        <activity android:name=".FAQActivity"
-            android:exported="false"/>
-        <activity android:name=".SettingSellerAct"
-            android:exported="false"/>
+        <activity 
+            android:name=".AccountInfoActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MyApplication"/>
+            
+        <activity 
+            android:name=".SellerMainActivity" 
+            android:exported="false"
+            android:theme="@style/Theme.MyApplication"/>
+            
+        <activity 
+            android:name=".CategoriesActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MyApplication"/>
+            
+        <activity 
+            android:name=".SettingsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MyApplication"/>
+            
+        <activity 
+            android:name=".CreateSellerAccountActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MyApplication"/>
+            
+        <activity 
+            android:name=".ListedItemsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MyApplication"/>
+            
+        <activity 
+            android:name=".OrderDetailsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MyApplication"/>
+            
+        <activity 
+            android:name=".FAQActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MyApplication"/>
+            
+        <activity 
+            android:name=".SettingSellerAct"
+            android:exported="false"
+            android:theme="@style/Theme.MyApplication"/>
     </application>
 </manifest>
