@@ -21,6 +21,7 @@ playServicesLocation = "21.3.0"
 playServicesMaps = "19.2.0"
 pluginAnnotation = "1.0.0"
 gridlayout = "1.1.0"
+firebaseStorage = "21.0.1"
 
 [libraries]
 android-plugin-annotation-v11 = { module = "org.maplibre.gl:android-plugin-annotation-v11", version.ref = "androidPluginAnnotationV11" }
@@ -46,6 +47,7 @@ androidx-constraintlayout = { group = "androidx.constraintlayout", name = "const
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
 play-services-maps = { group = "com.google.android.gms", name = "play-services-maps", version.ref = "playServicesMaps" }
 androidx-gridlayout = { group = "androidx.gridlayout", name = "gridlayout", version.ref = "gridlayout" }
+firebase-storage = { group = "com.google.firebase", name = "firebase-storage", version.ref = "firebaseStorage" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

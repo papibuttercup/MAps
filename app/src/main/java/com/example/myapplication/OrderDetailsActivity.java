@@ -1,53 +1,47 @@
 package com.example.myapplication;
 
 import android.os.Bundle;
-import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 public class OrderDetailsActivity extends AppCompatActivity {
-
-    private ImageView btnBackOrders;
-    private TextView txtBuyerName;
-    private ImageView imgProduct;
-    private TextView txtProductName;
-    private TextView txtProductPrice;
-    private TextView txtProductQuantity;
-    private TextView txtPaymentMethod;
-    private TextView txtPickup;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_order_details); // Use the new layout file
+        setContentView(R.layout.activity_order_details);
 
-        txtBuyerName = findViewById(R.id.txtBuyerName);
-        imgProduct = findViewById(R.id.imgProduct);
-        txtProductName = findViewById(R.id.txtProductName);
-        txtProductPrice = findViewById(R.id.txtProductPrice);
-        txtProductQuantity = findViewById(R.id.txtProductQuantity);
-        txtPaymentMethod = findViewById(R.id.txtPaymentMethod);
-        txtPickup = findViewById(R.id.txtPickup);
+        // Initialize Toolbar and set back button
+        Toolbar toolbar = findViewById(R.id.toolbarOrders);
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+        }
 
-        btnBackOrders.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-            }
-        });
+        // Initialize views
+        TextView txtBuyerName = findViewById(R.id.txtBuyerName);
+        ImageView imgProduct = findViewById(R.id.imgProduct);
+        TextView txtProductName = findViewById(R.id.txtProductName);
+        TextView txtProductPrice = findViewById(R.id.txtProductPrice);
+        TextView txtProductQuantity = findViewById(R.id.txtProductQuantity);
+        TextView txtPaymentMethod = findViewById(R.id.txtPaymentMethod);
+        TextView txtPickup = findViewById(R.id.txtPickup);
 
-        // Retrieve order data (if you passed any via Intent)
-        // String orderId = getIntent().getStringExtra("orderId");
-        // Fetch order details based on orderId from your data source
-
-        // For now, set some static data to match the image
+        // Set sample data
         txtBuyerName.setText("Peter Parker");
-        // You'll need to load the actual image based on the product
         txtProductName.setText("Black Shirt");
         txtProductPrice.setText("Php 150");
         txtProductQuantity.setText("1X");
         txtPaymentMethod.setText("Cash on Delivery");
         txtPickup.setText("Pick-up");
+    }
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        onBackPressed();
+        return true;
     }
 }

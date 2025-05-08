@@ -4,97 +4,56 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
+import android.widget.TextView;
+
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.auth.FirebaseAuth;
 
 public class SellerMainActivity extends AppCompatActivity {
 
-    private LinearLayout rowListedItems;
-    private LinearLayout rowTotalSales;
-    private LinearLayout rowTotalViews;
-    private LinearLayout rowOrders;
-    private LinearLayout rowReviews;
-    private LinearLayout faqButton;
-    private LinearLayout privacyButton;
-    private LinearLayout settingsButton;
+    private FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_sellermain); // Assuming your XML layout file is named seller_main.xml
+        setContentView(R.layout.activity_sellermain);
 
-        // Initialize the views
-        rowListedItems = findViewById(R.id.row_listed_items);
-        rowTotalSales = findViewById(R.id.row_total_sales);
-        rowTotalViews = findViewById(R.id.row_total_views);
-        rowOrders = findViewById(R.id.row_orders);
-        rowReviews = findViewById(R.id.row_reviews);
-        faqButton = findViewById(R.id.faqButton);
-        privacyButton = findViewById(R.id.privacyButton);
-        settingsButton = findViewById(R.id.settingsButton);
+        mAuth = FirebaseAuth.getInstance();
 
-        // X button for logout
+        // Initialize and setup all menu rows
+        setupRow(R.id.row_listed_items, "Listed Items", ListedItemsActivity.class);
+        setupRow(R.id.row_total_sales, "Total Sales", TotalSalesActivity.class);
+        setupRow(R.id.row_total_views, "Total Views", TotalViewsActivity.class);
+        setupRow(R.id.row_orders, "Orders", OrderDetailsActivity.class);
+        setupRow(R.id.row_reviews, "Reviews", ReviewsActivity.class);
+
+        // Setup bottom navigation buttons
+        findViewById(R.id.faqButton).setOnClickListener(v ->
+                startActivity(new Intent(this, FAQActivity.class)));
+        findViewById(R.id.settingsButton).setOnClickListener(v ->
+                startActivity(new Intent(this, SettingSellerAct.class)));
+
+        // Logout button
         ImageView btnClose = findViewById(R.id.btnClose);
-        btnClose.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                FirebaseAuth.getInstance().signOut();
-                Intent intent = new Intent(SellerMainActivity.this, LoginActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(intent);
-                finish();
-            }
-        });
+        btnClose.setOnClickListener(v -> logoutUser());
+    }
 
-        // Set click listeners for each row and button
-        rowListedItems.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Intent to navigate to the Listed Items activity
-                Intent intent = new Intent(SellerMainActivity.this, ListedItemsActivity.class);
-                startActivity(intent);
-            }
-        });
+    private void setupRow(int rowId, String title, Class<?> targetActivity) {
+        findViewById(rowId).setOnClickListener(v ->
+                startActivity(new Intent(this, targetActivity)));
 
-        rowTotalSales.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Intent to navigate to the Total Sales activity
-                Intent intent = new Intent(SellerMainActivity.this, TotalSalesActivity.class);
-                startActivity(intent);
-            }
-        });
+        // If you need to set the title text programmatically:
+        TextView titleView = findViewById(rowId).findViewById(R.id.menuText);
+        titleView.setText(title);
+    }
 
-        rowTotalViews.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Intent to navigate to the Total Views activity
-                Intent intent = new Intent(SellerMainActivity.this, TotalViewsActivity.class);
-                startActivity(intent);
-            }
-        });
-
-        rowOrders.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Intent to navigate to the Orders activity
-                Intent intent = new Intent(SellerMainActivity.this, OrderDetailsActivity.class);
-                startActivity(intent);
-            }
-        });
-
-        rowReviews.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Intent to navigate to the Reviews activity
-                Intent intent = new Intent(SellerMainActivity.this, ReviewsActivity.class);
-                startActivity(intent);
-            }
-        });
-
+    private void logoutUser() {
+        mAuth.signOut();
+        Intent intent = new Intent(this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 
     @Override
@@ -106,11 +65,7 @@ public class SellerMainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_logout) {
-            FirebaseAuth.getInstance().signOut();
-            Intent intent = new Intent(this, LoginActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-            finish();
+            logoutUser();
             return true;
         }
         return super.onOptionsItemSelected(item);

@@ -51,5 +51,13 @@
             android:exported="false"/>
         <activity android:name=".CreateSellerAccountActivity"
             android:exported="false"/>
+        <activity android:name=".ListedItemsActivity"
+            android:exported="false"/>
+        <activity android:name=".OrderDetailsActivity"
+            android:exported="false"/>
+        <activity android:name=".FAQActivity"
+            android:exported="false"/>
+        <activity android:name=".SettingSellerAct"
+            android:exported="false"/>
     </application>
 </manifest>

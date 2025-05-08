@@ -7,11 +7,10 @@ import android.content.Intent;
 
 
 public class SettingSellerAct extends AppCompatActivity {
-    @SuppressLint("MissingInflatedId")
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_settings);
-        findViewById(R.id.btnCloseSettings).setOnClickListener(v -> finish());
+        setContentView(R.layout.activity_sellersettings);
     }
 }

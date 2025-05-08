@@ -5,6 +5,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
@@ -33,6 +34,9 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -86,12 +90,17 @@ public class Maps extends AppCompatActivity implements OnMapReadyCallback {
     private LatLng lastKnownLocation;
     private View menuIcon;
     private ImageView searchIcon;
+    private boolean isVerifiedSeller = false;
+    private FirebaseFirestore db;
+    private FirebaseAuth auth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         MapLibre.getInstance(this);
-
+        db = FirebaseFirestore.getInstance();
+        auth = FirebaseAuth.getInstance();
+        checkSellerVerification();
         @SuppressLint("InflateParams")
         View rootView = LayoutInflater.from(this).inflate(R.layout.activity_main, null);
         setContentView(rootView);
@@ -139,6 +148,54 @@ public class Maps extends AppCompatActivity implements OnMapReadyCallback {
                 return false;
             }
         });
+    }
+    private void checkSellerVerification() {
+        FirebaseUser currentUser = auth.getCurrentUser();
+        if (currentUser == null) {
+            isVerifiedSeller = false;
+            return;
+        }
+
+        db.collection("users")
+                .document(currentUser.getUid())
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String accountType = documentSnapshot.getString("accountType");
+                        if ("seller".equals(accountType)) {
+                            checkVerificationStatus(currentUser.getUid());
+                        } else {
+                            isVerifiedSeller = false;
+                        }
+                    } else {
+                        isVerifiedSeller = false;
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("Maps", "Error checking account type", e);
+                    isVerifiedSeller = false;
+                });
+    }
+
+    private void checkVerificationStatus(String userId) {
+        db.collection("sellers")
+                .document(userId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String status = documentSnapshot.getString("verificationStatus");
+                        isVerifiedSeller = "approved".equals(status);
+                        if (isVerifiedSeller) {
+                            showToast("Verified seller access granted");
+                        }
+                    } else {
+                        isVerifiedSeller = false;
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("Maps", "Error checking verification status", e);
+                    isVerifiedSeller = false;
+                });
     }
     private void showMenuDropdown(View anchor) {
         View popupView = LayoutInflater.from(this).inflate(R.layout.custom_dropdown_menu, null);
@@ -321,17 +378,24 @@ public class Maps extends AppCompatActivity implements OnMapReadyCallback {
         }
 
         // Set marker click listener to show the delete option
+        // Set marker click listener to show the delete option (only for sellers)
+        // Set marker click listener (only verified sellers can delete)
         maplibreMap.setOnMarkerClickListener(marker -> {
-            showDeleteMarkerDialog(marker);
+            if (isVerifiedSeller) {
+                showDeleteMarkerDialog(marker);
+            }
             return true;
         });
 
-        maplibreMap.addOnMapLongClickListener(point -> {
-            addMarker(point.getLatitude(), point.getLongitude(), "Custom Marker");
-            return true;
-        });
+        // Only allow long press to add markers if user is a verified seller
+        if (isVerifiedSeller) {
+            maplibreMap.addOnMapLongClickListener(point -> {
+                addMarker(point.getLatitude(), point.getLongitude(), "Custom Marker");
+                return true;
+            });
+        }
 
-        loadMarkers(); // Load saved markers when map is ready
+        loadMarkers();
     }
 
     private void saveMarkers() {
@@ -437,6 +501,12 @@ public class Maps extends AppCompatActivity implements OnMapReadyCallback {
     }
 
     private void addMarker(double lat, double lng, String title) {
+        if (!isVerifiedSeller) {
+            showToast("Only verified sellers can add markers");
+            return;
+
+        }
+
         LatLng position = new LatLng(lat, lng);
         maplibreMap.addMarker(new MarkerOptions()
                 .position(position)
@@ -444,10 +514,11 @@ public class Maps extends AppCompatActivity implements OnMapReadyCallback {
 
         maplibreMap.animateCamera(CameraUpdateFactory.newLatLngZoom(position, 15));
         showToast("Marker added: " + title);
-        saveMarkers(); // Save after adding
+        saveMarkers();
     }
 
     private void showDeleteMarkerDialog(final Marker marker) {
+
         new AlertDialog.Builder(this)
                 .setTitle("Delete Marker")
                 .setMessage("Do you want to delete this marker?")
