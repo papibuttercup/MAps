@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bottom_sheet_background"
+    android:padding="16dp">
+
+    <!-- Handle -->
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/bottom_sheet_handle" />
+
+    <!-- Shop Name -->
+    <TextView
+        android:id="@+id/shopName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/black"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Shop Location -->
+    <TextView
+        android:id="@+id/shopLocation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="14sp"
+        android:textColor="@android:color/darker_gray"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Options Container -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- View Details Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/viewDetailsButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Details of the shop"
+            android:layout_marginBottom="8dp"
+            app:icon="@android:drawable/ic_menu_info_details"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+        <!-- Order Item Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/orderItemButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Order an item"
+            android:layout_marginBottom="8dp"
+            app:icon="@android:drawable/ic_menu_add"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+        <!-- Contact Shop Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/contactShopButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Contact the shop"
+            app:icon="@android:drawable/ic_menu_call"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+    </LinearLayout>
+
+</LinearLayout> 

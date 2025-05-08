@@ -8,13 +8,14 @@ import android.widget.Button;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import android.view.LayoutInflater;
-import android.graphics.drawable.Drawable;
+
 import com.bumptech.glide.Glide;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.firebase.auth.FirebaseAuth;
+import com.example.myapplication.Product;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
@@ -86,16 +87,6 @@ public class ListedItemsActivity extends AppCompatActivity {
     }
 }
 
-// Product model class
-class Product {
-    public String name, description, category, imageUrl, sellerId, sellerName;
-    public double price;
-    public int stock;
-    public boolean isAvailable;
-    public long createdAt;
-    public Product() {}
-}
-
 // RecyclerView Adapter
 class ListedItemsAdapter extends RecyclerView.Adapter<ListedItemsAdapter.ViewHolder> {
     private List<Product> products;
@@ -108,13 +99,13 @@ class ListedItemsAdapter extends RecyclerView.Adapter<ListedItemsAdapter.ViewHol
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         Product product = products.get(position);
-        holder.txtProductName.setText(product.name);
-        holder.txtProductPrice.setText("Php " + product.price);
-        holder.txtProductStatus.setText(product.isAvailable ? "Active" : "Inactive");
+        holder.txtProductName.setText(product.getName());
+        holder.txtProductPrice.setText("Php " + product.getPrice());
+        holder.txtProductStatus.setText(product.isAvailable() ? "Active" : "Inactive");
         // Load image with Glide or placeholder
-        if (product.imageUrl != null && !product.imageUrl.isEmpty()) {
+        if (product.getImageUrl() != null && !product.getImageUrl().isEmpty()) {
             Glide.with(holder.imgProduct.getContext())
-                .load(product.imageUrl)
+                .load(product.getImageUrl())
                 .placeholder(R.drawable.ic_image_placeholder)
                 .into(holder.imgProduct);
         } else {

@@ -3,7 +3,6 @@ package com.example.myapplication;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
-
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -32,16 +31,23 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
+import com.bumptech.glide.request.RequestOptions;
 
 import org.maplibre.android.MapLibre;
 import org.maplibre.android.annotations.Marker;
@@ -57,12 +63,17 @@ import org.maplibre.android.maps.MapView;
 import org.maplibre.android.maps.MapLibreMap;
 import org.maplibre.android.maps.OnMapReadyCallback;
 import org.maplibre.android.maps.Style;
+import org.maplibre.android.style.layers.SymbolLayer;
+import org.maplibre.android.style.sources.GeoJsonSource;
+import org.maplibre.android.style.layers.PropertyFactory;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -71,6 +82,12 @@ import okhttp3.Callback;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+
+import android.widget.RatingBar;
+import android.widget.Button;
+import android.widget.ImageButton;
+
+import java.util.concurrent.TimeUnit;
 
 public class Maps extends AppCompatActivity implements OnMapReadyCallback {
     private static final int PERMISSIONS_REQUEST_LOCATION = 99;
@@ -82,6 +99,7 @@ public class Maps extends AppCompatActivity implements OnMapReadyCallback {
     private GeocodingService geocodingService;
     private MapView mapView;
     private MapLibreMap maplibreMap;
+    private MapLibreMap map;
 
     private boolean isSearchExpanded = true;
 
@@ -94,6 +112,8 @@ public class Maps extends AppCompatActivity implements OnMapReadyCallback {
     private boolean isVerifiedSeller = false;
     private FirebaseFirestore db;
     private FirebaseAuth auth;
+
+    private BottomSheetDialog collapsedSheetDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -128,14 +148,12 @@ public class Maps extends AppCompatActivity implements OnMapReadyCallback {
         searchInput.setAdapter(autocompleteAdapter);
         searchInput.setThreshold(1);
 
-// Add this item click listener
         searchInput.setOnItemClickListener((parent, view, position, id) -> {
             String selectedItem = (String) parent.getItemAtPosition(position);
             searchInput.setText(selectedItem);
             performSearch();
         });
 
-        // Set up search input listener
         searchInput.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
@@ -157,30 +175,8 @@ public class Maps extends AppCompatActivity implements OnMapReadyCallback {
             return;
         }
 
-        db.collection("users")
-                .document(currentUser.getUid())
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        String accountType = documentSnapshot.getString("accountType");
-                        if ("seller".equals(accountType)) {
-                            checkVerificationStatus(currentUser.getUid());
-                        } else {
-                            isVerifiedSeller = false;
-                        }
-                    } else {
-                        isVerifiedSeller = false;
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    Log.e("Maps", "Error checking account type", e);
-                    isVerifiedSeller = false;
-                });
-    }
-
-    private void checkVerificationStatus(String userId) {
         db.collection("sellers")
-                .document(userId)
+                .document(currentUser.getUid())
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
@@ -198,59 +194,49 @@ public class Maps extends AppCompatActivity implements OnMapReadyCallback {
                     isVerifiedSeller = false;
                 });
     }
+
     private void showMenuDropdown(View anchor) {
         View popupView = LayoutInflater.from(this).inflate(R.layout.custom_dropdown_menu, null);
 
         PopupWindow popupWindow = new PopupWindow(popupView,
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT,
-                true); // Focusable so it will close when clicking outside
+                true);
 
-        // Calculate proper positioning
         int[] anchorLocation = new int[2];
         anchor.getLocationOnScreen(anchorLocation);
 
-        // Get screen dimensions
         DisplayMetrics displayMetrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
         int screenHeight = displayMetrics.heightPixels;
 
-        // Measure the popup view first to get its width
         popupView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
         int popupWidth = popupView.getMeasuredWidth();
         int popupHeight = popupView.getMeasuredHeight();
 
         int xPos = anchorLocation[0];
 
-        // Position below menu icon with 10px margin
         int yPos = anchorLocation[1] + anchor.getHeight() + 32;
 
-        // Ensure dropdown doesn't go off screen bottom
         if (yPos + popupHeight > screenHeight) {
-            // If dropdown would go off bottom of screen, show above instead
             yPos = anchorLocation[1] - popupHeight - 10;
         }
 
-        // Show popup
         popupWindow.showAtLocation(anchor, Gravity.NO_GRAVITY, xPos, yPos);
 
-        // Handle menu item clicks
         popupView.findViewById(R.id.menu_account).setOnClickListener(v -> {
-            // Start the AccountInfoActivity
-            android.content.Intent intent = new android.content.Intent(this, AccountInfoActivity.class);
+            Intent intent = new Intent(this, AccountInfoActivity.class);
             startActivity(intent);
             popupWindow.dismiss();
         });
 
         popupView.findViewById(R.id.menu_categories).setOnClickListener(v -> {
-            // Start the CategoriesActivity
             Intent intent = new Intent(this, CategoriesActivity.class);
             startActivity(intent);
             popupWindow.dismiss();
         });
 
         popupView.findViewById(R.id.menu_settings).setOnClickListener(v -> {
-            // Start the SettingsActivity
             Intent intent = new Intent(this, SettingsActivity.class);
             startActivity(intent);
             popupWindow.dismiss();
@@ -277,7 +263,6 @@ public class Maps extends AppCompatActivity implements OnMapReadyCallback {
         }
     }
 
-    // Add this inner class for the autocomplete adapter
     private class AutocompleteAdapter extends ArrayAdapter<String> implements Filterable {
         private List<String> suggestions;
         private final OkHttpClient httpClient;
@@ -378,11 +363,14 @@ public class Maps extends AppCompatActivity implements OnMapReadyCallback {
             enableLocationComponent(style);
         }
 
-        // Load all seller markers
         loadAllSellerMarkers();
 
-        // Disable marker click listener since this is view-only
-        maplibreMap.setOnMarkerClickListener(marker -> false);
+        maplibreMap.setOnMarkerClickListener(marker -> {
+            String shopName = marker.getTitle();
+            String locationName = "Sample Location";
+            showCollapsedBottomSheet(shopName, locationName);
+            return true;
+        });
     }
 
     private void loadAllSellerMarkers() {
@@ -587,5 +575,303 @@ public class Maps extends AppCompatActivity implements OnMapReadyCallback {
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         mapView.onSaveInstanceState(outState);
+    }
+
+    private void showCollapsedBottomSheet(String shopName, String locationName) {
+        try {
+            if (collapsedSheetDialog != null && collapsedSheetDialog.isShowing()) {
+                collapsedSheetDialog.dismiss();
+            }
+
+            View bottomSheetView = getLayoutInflater().inflate(R.layout.bottom_sheet_collapsed, null);
+            collapsedSheetDialog = new BottomSheetDialog(this);
+            collapsedSheetDialog.setContentView(bottomSheetView);
+
+            TextView shopNameView = bottomSheetView.findViewById(R.id.shopName);
+            TextView locationNameView = bottomSheetView.findViewById(R.id.locationName);
+            Button expandButton = bottomSheetView.findViewById(R.id.expandButton);
+
+            if (shopNameView == null || locationNameView == null || expandButton == null) {
+                Log.e("Maps", "Failed to find views in bottom sheet");
+                showToast("Error loading shop details");
+                return;
+            }
+
+            shopNameView.setText(shopName);
+            locationNameView.setText(locationName);
+
+            expandButton.setOnClickListener(v -> {
+                collapsedSheetDialog.dismiss();
+                showOrderItemSheet(shopName, locationName);
+            });
+
+            collapsedSheetDialog.show();
+        } catch (Exception e) {
+            Log.e("Maps", "Error showing bottom sheet", e);
+            showToast("Error loading shop details");
+        }
+    }
+
+    private void showOrderItemSheet(String shopName, String locationName) {
+        getSellerIdForShop(shopName, new SellerIdCallback() {
+            @Override
+            public void onSuccess(String sellerId) {
+                showProductListBottomSheet(sellerId);
+            }
+
+            @Override
+            public void onFailure(String error) {
+                showToast("Error: " + error);
+            }
+        });
+    }
+
+    private void showProductListBottomSheet(String sellerId) {
+        View bottomSheetView = getLayoutInflater().inflate(R.layout.bottom_sheet_product_list, null);
+        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
+        bottomSheetDialog.setContentView(bottomSheetView);
+
+        RecyclerView recyclerView = bottomSheetView.findViewById(R.id.productRecyclerView);
+        TextView emptyView = bottomSheetView.findViewById(R.id.emptyView);
+        ImageButton closeButton = bottomSheetView.findViewById(R.id.closeProductList);
+
+        if (recyclerView == null || emptyView == null || closeButton == null) {
+            Log.e("Maps", "Failed to find views in bottom sheet");
+            showToast("Error loading products");
+            return;
+        }
+
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        closeButton.setOnClickListener(v -> bottomSheetDialog.dismiss());
+
+        List<Product> products = new ArrayList<>();
+        db.collection("products")
+            .whereEqualTo("sellerId", sellerId)
+            .get()
+            .addOnSuccessListener(queryDocumentSnapshots -> {
+                for (DocumentSnapshot document : queryDocumentSnapshots) {
+                    Product product = document.toObject(Product.class);
+                    if (product != null && product.getStock() > 0) {
+                        product.setId(document.getId());
+                        products.add(product);
+                    }
+                }
+
+                if (products.isEmpty()) {
+                    recyclerView.setVisibility(View.GONE);
+                    emptyView.setVisibility(View.VISIBLE);
+                } else {
+                    recyclerView.setVisibility(View.VISIBLE);
+                    emptyView.setVisibility(View.GONE);
+                    ProductAdapter adapter = new ProductAdapter(products, product -> {
+                        placeOrder(product);
+                        bottomSheetDialog.dismiss();
+                    });
+                    recyclerView.setAdapter(adapter);
+                }
+            })
+            .addOnFailureListener(e -> {
+                Log.e("Maps", "Error fetching products", e);
+                showToast("Error loading products");
+            });
+
+        bottomSheetDialog.show();
+    }
+
+    private void placeOrder(Product product) {
+        FirebaseUser currentUser = auth.getCurrentUser();
+        if (currentUser == null) {
+            showToast("Please login to place an order");
+            return;
+        }
+
+        Map<String, Object> order = new HashMap<>();
+        order.put("productId", product.getId());
+        order.put("productName", product.getName());
+        order.put("price", product.getPrice());
+        order.put("sellerId", product.getSellerId());
+        order.put("customerId", currentUser.getUid());
+        order.put("status", "pending");
+        order.put("timestamp", FieldValue.serverTimestamp());
+
+        db.collection("orders")
+            .add(order)
+            .addOnSuccessListener(documentReference -> {
+                showToast("Order placed successfully");
+                db.collection("products").document(product.getId())
+                    .update("stock", FieldValue.increment(-1))
+                    .addOnFailureListener(e -> Log.e("Maps", "Error updating stock", e));
+            })
+            .addOnFailureListener(e -> {
+                Log.e("Maps", "Error placing order", e);
+                showToast("Error placing order");
+            });
+    }
+
+    private class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductViewHolder> {
+        private final List<Product> products;
+        private final OnOrderClickListener listener;
+
+        ProductAdapter(List<Product> products, OnOrderClickListener listener) {
+            this.products = products;
+            this.listener = listener;
+        }
+
+        @NonNull
+        @Override
+        public ProductViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View view = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.item_product, parent, false);
+            return new ProductViewHolder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull ProductViewHolder holder, int position) {
+            Product product = products.get(position);
+            holder.productName.setText(product.getName());
+            holder.productPrice.setText(String.format("$%.2f", product.getPrice()));
+            holder.productStock.setText(String.format("Stock: %d", product.getStock()));
+
+            RequestOptions requestOptions = new RequestOptions()
+                .placeholder(R.drawable.placeholder_image)
+                .error(R.drawable.error_image)
+                .centerCrop();
+
+            if (product.getImageUrl() != null && !product.getImageUrl().isEmpty()) {
+                Glide.with(holder.itemView.getContext())
+                    .load(product.getImageUrl())
+                    .apply(requestOptions)
+                    .transition(DrawableTransitionOptions.withCrossFade())
+                    .into(holder.productImage);
+            } else {
+                holder.productImage.setImageResource(R.drawable.placeholder_image);
+            }
+
+            holder.orderButton.setOnClickListener(v -> {
+                if (product.getStock() > 0) {
+                    listener.onOrder(product);
+                } else {
+                    showToast("Product out of stock");
+                }
+            });
+        }
+
+        @Override
+        public int getItemCount() {
+            return products.size();
+        }
+
+        class ProductViewHolder extends RecyclerView.ViewHolder {
+            ImageView productImage;
+            TextView productName, productPrice, productStock;
+            Button orderButton;
+
+            ProductViewHolder(@NonNull View itemView) {
+                super(itemView);
+                productImage = itemView.findViewById(R.id.productImage);
+                productName = itemView.findViewById(R.id.productName);
+                productPrice = itemView.findViewById(R.id.productPrice);
+                productStock = itemView.findViewById(R.id.productStock);
+                orderButton = itemView.findViewById(R.id.orderButton);
+            }
+        }
+    }
+    private interface OnOrderClickListener {
+        void onOrder(Product product);
+    }
+
+    private void updateAverageRating(String sellerId, TextView shopRatingView) {
+        db.collection("sellers").document(sellerId)
+            .collection("ratings").get()
+            .addOnSuccessListener(querySnapshot -> {
+                double sum = 0;
+                int count = 0;
+                for (DocumentSnapshot doc : querySnapshot) {
+                    Number rating = (Number) doc.get("rating");
+                    if (rating != null) {
+                        sum += rating.doubleValue();
+                        count++;
+                    }
+                }
+                double avg = count > 0 ? sum / count : 0;
+                db.collection("sellers").document(sellerId)
+                    .update("averageRating", avg)
+                    .addOnSuccessListener(aVoid -> {
+                        if (shopRatingView != null) shopRatingView.setText("★ " + String.format("%.1f", avg));
+                    });
+            });
+    }
+
+    // Add this interface at the top of your Maps class (with other member variables)
+    private interface SellerIdCallback {
+        void onSuccess(String sellerId);
+        void onFailure(String error);
+    }
+
+    // Replace your existing getSellerIdForShop() method with this:
+    private void getSellerIdForShop(String shopName, SellerIdCallback callback) {
+        if (shopName == null || shopName.isEmpty()) {
+            callback.onFailure("Invalid shop name");
+            return;
+        }
+
+        // First find the marker in seller_markers collection
+        db.collection("seller_markers")
+                .whereEqualTo("title", shopName)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (!queryDocumentSnapshots.isEmpty()) {
+                        String sellerId = queryDocumentSnapshots.getDocuments().get(0).getString("sellerId");
+                        if (sellerId != null) {
+                            // Now verify this is an approved seller
+                            db.collection("sellers")
+                                    .document(sellerId)
+                                    .get()
+                                    .addOnSuccessListener(sellerDoc -> {
+                                        if (sellerDoc.exists() && "approved".equals(sellerDoc.getString("verificationStatus"))) {
+                                            callback.onSuccess(sellerId);
+                                        } else {
+                                            callback.onFailure("Shop is not verified");
+                                        }
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        Log.e("Maps", "Error finding seller", e);
+                                        callback.onFailure("Error finding shop");
+                                    });
+                        } else {
+                            callback.onFailure("Shop not found");
+                        }
+                    } else {
+                        callback.onFailure("Shop not found");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("Maps", "Error finding marker", e);
+                    callback.onFailure("Error finding shop");
+                });
+    }
+
+    private void setupMapTiler() {
+        mapView.getMapAsync(mapLibreMap -> {
+            this.map = mapLibreMap;
+            
+            // Set the style URL with your MapTiler API key
+            String styleUrl = "https://api.maptiler.com/maps/streets/style.json?key=" + getString(R.string.maptiler_api_key);
+            map.setStyle(new Style.Builder().fromUri(styleUrl), style -> {
+                // Style is loaded
+                map.getStyle().addSource(new GeoJsonSource("markers"));
+                
+                // Add marker layer
+                map.getStyle().addLayer(new SymbolLayer("markers", "markers")
+                    .withProperties(
+                        PropertyFactory.iconImage("marker"),
+                        PropertyFactory.iconAllowOverlap(true),
+                        PropertyFactory.iconIgnorePlacement(true)
+                    ));
+                
+                // Load markers
+                loadAllSellerMarkers();
+            });
+        });
     }
 }

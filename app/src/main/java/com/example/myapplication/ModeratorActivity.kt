@@ -129,6 +129,9 @@ class ModeratorActivity : AppCompatActivity() {
             setPositiveButton("Logout") { _, _ ->
                 auth.signOut()
                 showToast("Logged out successfully")
+                val intent = Intent(this@ModeratorActivity, LoginActivity::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                startActivity(intent)
                 finish()
             }
             setNegativeButton("Cancel", null)
